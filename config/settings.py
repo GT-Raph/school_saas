@@ -92,6 +92,8 @@ INSTALLED_APPS = [
     "apps.reports.apps.ReportsConfig",
     "apps.promotions.apps.PromotionsConfig",
 
+    "apps.finance.apps.FinanceConfig",
+
     # Django
     "django.contrib.admin",
     "django.contrib.auth",
