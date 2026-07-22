@@ -435,6 +435,237 @@ class Subject(SchoolOwnedModel):
     def __str__(self) -> str:
         return self.name
 
+class SubjectOffering(SchoolOwnedModel):
+    """
+    Represents a subject being taught to a particular class
+    during a particular academic year.
+
+    Example:
+        Mathematics
+        Basic 4A
+        2026/2027
+    """
+
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.PROTECT,
+        related_name="subject_offerings",
+    )
+
+    class_section = models.ForeignKey(
+        ClassSection,
+        on_delete=models.PROTECT,
+        related_name="subject_offerings",
+    )
+
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.PROTECT,
+        related_name="offerings",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    class Meta:
+        ordering = [
+            "class_section",
+            "subject__name",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "school",
+                    "academic_year",
+                    "class_section",
+                    "subject",
+                ],
+                name=(
+                    "unique_subject_offering_"
+                    "per_class_year"
+                ),
+            ),
+        ]
+
+        indexes = [
+            models.Index(
+                fields=[
+                    "school",
+                    "academic_year",
+                    "class_section",
+                ]
+            ),
+        ]
+
+    def clean(self):
+        errors = {}
+
+        if (
+            self.academic_year_id
+            and self.school_id
+            and self.academic_year.school_id != self.school_id
+        ):
+            errors["academic_year"] = (
+                "Academic year belongs to another school."
+            )
+
+        if (
+            self.class_section_id
+            and self.school_id
+            and self.class_section.school_id != self.school_id
+        ):
+            errors["class_section"] = (
+                "Class section belongs to another school."
+            )
+
+        if (
+            self.subject_id
+            and self.school_id
+            and self.subject.school_id != self.school_id
+        ):
+            errors["subject"] = (
+                "Subject belongs to another school."
+            )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return (
+            f"{self.subject.name} - "
+            f"{self.class_section} - "
+            f"{self.academic_year.name}"
+        )
+
+
+class TeacherAssignment(SchoolOwnedModel):
+    """
+    Assigns a teacher to a subject offering.
+
+    Teacher changes can be preserved historically.
+    """
+
+    offering = models.ForeignKey(
+        SubjectOffering,
+        on_delete=models.CASCADE,
+        related_name="teacher_assignments",
+    )
+
+    teacher = models.ForeignKey(
+        "staff.Staff",
+        on_delete=models.PROTECT,
+        related_name="teaching_assignments",
+    )
+
+    starts_on = models.DateField()
+
+    ends_on = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    is_primary = models.BooleanField(
+        default=True,
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    class Meta:
+        ordering = [
+            "-starts_on",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "offering",
+                    "teacher",
+                    "starts_on",
+                ],
+                name=(
+                    "unique_teacher_assignment_"
+                    "start"
+                ),
+            ),
+
+            models.UniqueConstraint(
+                fields=["offering"],
+                condition=models.Q(
+                    is_primary=True,
+                    is_active=True,
+                ),
+                name=(
+                    "one_active_primary_teacher_"
+                    "per_offering"
+                ),
+            ),
+        ]
+
+    def clean(self):
+        errors = {}
+
+        if (
+            self.offering_id
+            and self.school_id
+            and self.offering.school_id != self.school_id
+        ):
+            errors["offering"] = (
+                "Subject offering belongs to another school."
+            )
+
+        if (
+            self.teacher_id
+            and self.school_id
+            and self.teacher.school_id != self.school_id
+        ):
+            errors["teacher"] = (
+                "Teacher belongs to another school."
+            )
+
+        if self.teacher_id and not self.teacher.is_teacher:
+            errors["teacher"] = (
+                "This staff member is not marked as a teacher."
+            )
+
+        if (
+            self.starts_on
+            and self.ends_on
+            and self.ends_on < self.starts_on
+        ):
+            errors["ends_on"] = (
+                "Assignment end date cannot be before start date."
+            )
+
+        if self.offering_id:
+            year = self.offering.academic_year
+
+            if self.starts_on < year.starts_on:
+                errors["starts_on"] = (
+                    "Teacher assignment cannot start before "
+                    "the academic year."
+                )
+
+            if (
+                self.ends_on
+                and self.ends_on > year.ends_on
+            ):
+                errors["ends_on"] = (
+                    "Teacher assignment cannot end after "
+                    "the academic year."
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return (
+            f"{self.teacher} -> "
+            f"{self.offering}"
+        )
 
 class Enrollment(SchoolOwnedModel):
     """

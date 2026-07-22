@@ -86,6 +86,9 @@ INSTALLED_APPS = [
     "apps.staff.apps.StaffConfig",
     "apps.academics.apps.AcademicsConfig",
 
+    "apps.attendance.apps.AttendanceConfig",
+    "apps.assessments.apps.AssessmentsConfig",
+
     # Django
     "django.contrib.admin",
     "django.contrib.auth",

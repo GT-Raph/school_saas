@@ -11,6 +11,7 @@ class StaffAdmin(admin.ModelAdmin):
         "last_name",
         "job_title",
         "department",
+        "is_teacher",
         "school",
         "employment_status",
     )
@@ -19,6 +20,7 @@ class StaffAdmin(admin.ModelAdmin):
         "school",
         "employment_status",
         "department",
+        "is_teacher",
     )
 
     search_fields = (

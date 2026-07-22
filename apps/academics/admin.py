@@ -6,6 +6,8 @@ from .models import (
     ClassSection,
     Enrollment,
     Subject,
+    SubjectOffering,
+    TeacherAssignment,
     Term,
 )
 
@@ -135,4 +137,52 @@ class EnrollmentAdmin(
         "student__first_name",
         "student__last_name",
     )
-    
+
+@admin.register(SubjectOffering)
+class SubjectOfferingAdmin(admin.ModelAdmin):
+    list_display = (
+        "subject",
+        "class_section",
+        "academic_year",
+        "school",
+        "is_active",
+    )
+
+    list_filter = (
+        "school",
+        "academic_year",
+        "class_section",
+        "is_active",
+    )
+
+    search_fields = (
+        "subject__name",
+        "class_section__name",
+        "class_section__level__name",
+    )
+
+
+@admin.register(TeacherAssignment)
+class TeacherAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "teacher",
+        "offering",
+        "starts_on",
+        "ends_on",
+        "is_primary",
+        "is_active",
+        "school",
+    )
+
+    list_filter = (
+        "school",
+        "is_primary",
+        "is_active",
+    )
+
+    search_fields = (
+        "teacher__first_name",
+        "teacher__last_name",
+        "teacher__employee_number",
+        "offering__subject__name",
+    )

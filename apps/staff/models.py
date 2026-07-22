@@ -58,6 +58,11 @@ class Staff(SchoolOwnedModel):
         blank=True,
     )
 
+    is_teacher = models.BooleanField(
+        default=False,
+        help_text="Indicates whether this staff member can be assigned to teach.",
+    )
+
     phone_number = models.CharField(
         max_length=30,
         blank=True,
@@ -139,3 +144,5 @@ class Staff(SchoolOwnedModel):
             f"{self.full_name} "
             f"({self.employee_number})"
         )
+    
+    
