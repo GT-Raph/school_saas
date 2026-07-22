@@ -1,0 +1,31 @@
+services:
+  - type: web
+
+    name: school-saas
+
+    runtime: python
+
+    plan: free
+
+    buildCommand: bash build.sh
+
+    startCommand: gunicorn config.wsgi:application
+
+    healthCheckPath: /health/
+
+    envVars:
+
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+
+      - key: DJANGO_DEBUG
+        value: "False"
+
+      - key: DATABASE_URL
+        sync: false
+
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
