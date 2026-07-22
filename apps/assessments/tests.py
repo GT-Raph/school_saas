@@ -149,12 +149,12 @@ class AssessmentEngineTests(TestCase):
             )
         )
 
-        for grade, low, high in [
-            ("A", Decimal("80.00"), Decimal("100.00")),
-            ("B", Decimal("70.00"), Decimal("79.99")),
-            ("C", Decimal("60.00"), Decimal("69.99")),
-            ("D", Decimal("50.00"), Decimal("59.99")),
-            ("F", Decimal("0.00"), Decimal("49.99")),
+        for grade, low, high, is_pass in [
+            ("A", Decimal("80.00"), Decimal("100.00"), True),
+            ("B", Decimal("70.00"), Decimal("79.99"), True),
+            ("C", Decimal("60.00"), Decimal("69.99"), True),
+            ("D", Decimal("50.00"), Decimal("59.99"), True),
+            ("F", Decimal("0.00"), Decimal("49.99"), False),
         ]:
             print(
                 "CREATING BAND:",
@@ -170,6 +170,7 @@ class AssessmentEngineTests(TestCase):
                 grade=grade,
                 minimum_score=low,
                 maximum_score=high,
+                is_pass=is_pass,
             )
 
             band.full_clean()

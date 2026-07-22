@@ -198,6 +198,7 @@ def calculate_subject_result(
             "school": assessment_plan.school,
             "total_score": total_percentage,
             "grade": band.grade,
+            "is_pass": band.is_pass,
             "grade_label": band.label,
             "remark": band.remark,
         },
