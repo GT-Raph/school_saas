@@ -74,12 +74,19 @@ CSRF_TRUSTED_ORIGINS = [
 # -------------------------------------------------------------------
 
 INSTALLED_APPS = [
+    # Our applications
     "apps.core.apps.CoreConfig",
     "apps.accounts.apps.AccountsConfig",
     "apps.schools.apps.SchoolsConfig",
     "apps.subscriptions.apps.SubscriptionsConfig",
     "apps.audit.apps.AuditConfig",
 
+    "apps.students.apps.StudentsConfig",
+    "apps.guardians.apps.GuardiansConfig",
+    "apps.staff.apps.StaffConfig",
+    "apps.academics.apps.AcademicsConfig",
+
+    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
