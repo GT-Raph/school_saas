@@ -42,6 +42,22 @@ class School(TimeStampedModel):
         default="en",
     )
 
+    class Meta:
+        permissions = [
+            (
+                "manage_school_settings",
+                "Can manage school settings",
+            ),
+            (
+                "manage_school_users",
+                "Can manage school users",
+            ),
+            (
+                "manage_school_roles",
+                "Can manage school roles and permissions",
+            ),
+        ]
+
     def __str__(self) -> str:
         return self.name
 

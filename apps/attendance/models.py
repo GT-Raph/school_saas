@@ -68,6 +68,17 @@ class AttendanceSession(SchoolOwnedModel):
             ),
         ]
 
+        permissions = [
+            (
+                "submit_attendance",
+                "Can submit attendance",
+            ),
+            (
+                "lock_attendance",
+                "Can lock attendance",
+            ),
+        ]
+
         indexes = [
             models.Index(
                 fields=[

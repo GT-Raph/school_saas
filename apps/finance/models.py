@@ -402,6 +402,17 @@ class StudentInvoice(SchoolOwnedModel):
             ),
         ]
 
+        permissions = [
+            (
+                "issue_student_invoice",
+                "Can issue student invoices",
+            ),
+            (
+                "void_student_invoice",
+                "Can void student invoices",
+            ),
+        ]
+
         indexes = [
             models.Index(
                 fields=[
@@ -712,6 +723,17 @@ class Payment(SchoolOwnedModel):
             ),
         ]
 
+        permissions = [
+            (
+                "record_student_payment",
+                "Can record student payments",
+            ),
+            (
+                "reverse_student_payment",
+                "Can reverse student payments",
+            ),
+        ]
+
     def clean(self):
         if (
             self.enrollment_id
@@ -930,6 +952,17 @@ class FinancialAdjustment(
                     "financial_adjustment_"
                     "positive"
                 ),
+            ),
+        ]
+
+        permissions = [
+            (
+                "approve_financial_adjustment",
+                "Can approve discounts, scholarships and waivers",
+            ),
+            (
+                "reverse_financial_adjustment",
+                "Can reverse financial adjustments",
             ),
         ]
 

@@ -739,6 +739,20 @@ class SubjectResult(SchoolOwnedModel):
                 name="subject_result_score_0_to_100",
             ),
         ]
+        permissions = [
+            (
+                "submit_subject_result",
+                "Can submit subject results",
+            ),
+            (
+                "approve_subject_result",
+                "Can approve subject results",
+            ),
+            (
+                "publish_subject_result",
+                "Can publish subject results",
+            ),
+        ]
 
     def __str__(self):
         return (

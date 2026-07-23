@@ -1,0 +1,88 @@
+{% extends "portal/base.html" %}
+
+
+{% block title %}
+Student Portal
+{% endblock %}
+
+
+{% block heading %}
+Student Portal
+{% endblock %}
+
+
+{% block content %}
+
+<h1>
+    {{ student.full_name }}
+</h1>
+
+<p>
+    Admission Number:
+    {{ student.admission_number }}
+</p>
+
+
+<h2>
+    Academic History
+</h2>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>
+                Academic Year
+            </th>
+
+            <th>
+                Class
+            </th>
+
+            <th>
+                Status
+            </th>
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for enrollment in enrollments %}
+
+            <tr>
+
+                <td>
+                    {{ enrollment.academic_year.name }}
+                </td>
+
+                <td>
+                    {{ enrollment.class_section }}
+                </td>
+
+                <td>
+                    {{ enrollment.get_status_display }}
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="3">
+                    No enrollment history found.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

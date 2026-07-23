@@ -1,0 +1,45 @@
+{% extends "portal/base.html" %}
+
+
+{% block title %}
+Academic Dashboard
+{% endblock %}
+
+
+{% block heading %}
+Academic Management
+{% endblock %}
+
+
+{% block content %}
+
+<div class="cards">
+
+    <div class="card">
+
+        <div>
+            Active Students
+        </div>
+
+        <div class="number">
+            {{ active_students }}
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Active Enrollments
+        </div>
+
+        <div class="number">
+            {{ active_enrollments }}
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

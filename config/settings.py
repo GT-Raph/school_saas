@@ -39,6 +39,30 @@ DEBUG = (
     == "true"
 )
 
+SESSION_COOKIE_HTTPONLY = True
+
+CSRF_COOKIE_HTTPONLY = False
+
+X_FRAME_OPTIONS = "DENY"
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+if not DEBUG:
+
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https",
+    )
+
+    SESSION_COOKIE_SECURE = True
+
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_SSL_REDIRECT = True
+
+    SECURE_HSTS_SECONDS = 3600
+
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -93,6 +117,8 @@ INSTALLED_APPS = [
     "apps.promotions.apps.PromotionsConfig",
 
     "apps.finance.apps.FinanceConfig",
+
+    "apps.portal.apps.PortalConfig",
 
     # Django
     "django.contrib.admin",
@@ -271,6 +297,18 @@ STORAGES = {
 }
 
 
+LOGIN_URL = "/login/"
+
+LOGIN_REDIRECT_URL = "/portal/"
+
+LOGOUT_REDIRECT_URL = "/login/"
+
+
 DEFAULT_AUTO_FIELD = (
     "django.db.models.BigAutoField"
+)
+
+DEV_TENANT_SLUG = os.environ.get(
+    "DEV_TENANT_SLUG",
+    "",
 )

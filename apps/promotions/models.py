@@ -368,6 +368,13 @@ class PromotionEvaluation(
                 ),
             ),
         ]
+        
+        permissions = [
+            (
+                "run_promotion_evaluation",
+                "Can run promotion evaluation",
+            ),
+        ]
 
     def __str__(self):
         return (
@@ -494,6 +501,18 @@ class PromotionDecision(
             raise ValidationError(
                 errors
             )
+        
+    class Meta:
+        permissions = [
+            (
+                "approve_promotion_decision",
+                "Can approve promotion decisions",
+            ),
+            (
+                "execute_promotion_decision",
+                "Can execute promotion decisions",
+            ),
+        ]
 
     def __str__(self):
         return (
