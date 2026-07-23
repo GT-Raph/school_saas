@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-
+from django.utils import timezone
 from .models import (
     AttendanceRecord,
     AttendanceSession,
@@ -83,3 +83,71 @@ def save_attendance_records(
         saved_records.append(record)
 
     return saved_records
+
+
+@transaction.atomic
+def submit_attendance_session(
+    *,
+    session,
+):
+    if (
+        session.status
+        != AttendanceSession.Status.DRAFT
+    ):
+        raise ValidationError(
+            (
+                "Only draft attendance "
+                "can be submitted."
+            )
+        )
+
+    if not session.records.exists():
+        raise ValidationError(
+            (
+                "Attendance cannot be "
+                "submitted without records."
+            )
+        )
+
+    session.status = (
+        AttendanceSession.Status.SUBMITTED
+    )
+
+    session.save(
+        update_fields=[
+            "status",
+            "updated_at",
+        ]
+    )
+
+    return session
+
+
+@transaction.atomic
+def lock_attendance_session(
+    *,
+    session,
+):
+    if (
+        session.status
+        != AttendanceSession.Status.SUBMITTED
+    ):
+        raise ValidationError(
+            (
+                "Only submitted attendance "
+                "can be locked."
+            )
+        )
+
+    session.status = (
+        AttendanceSession.Status.LOCKED
+    )
+
+    session.save(
+        update_fields=[
+            "status",
+            "updated_at",
+        ]
+    )
+
+    return session

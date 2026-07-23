@@ -1,0 +1,117 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+{{ offering.class_section }} — {{ offering.subject.name }}
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ offering.subject.name }}
+</h1>
+
+<p>
+    {{ offering.class_section }}
+    ·
+    {{ offering.academic_year.name }}
+</p>
+
+
+<div class="cards">
+
+    <div class="card">
+        <div>Students</div>
+
+        <div class="number">
+            {{ enrollments|length }}
+        </div>
+    </div>
+
+</div>
+
+
+<h2>
+    Term Actions
+</h2>
+
+<table>
+
+    <thead>
+        <tr>
+            <th>Term</th>
+            <th>Attendance</th>
+            <th>Assessments</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for term in terms %}
+
+            <tr>
+
+                <td>
+                    {{ term.name }}
+                </td>
+
+                <td>
+                    <a
+                        href="{% url 'portal:teacher-attendance' offering.id term.id %}"
+                    >
+                        Take Attendance
+                    </a>
+                </td>
+
+                <td>
+                    <a
+                        href="{% url 'portal:teacher-assessments' offering.id term.id %}"
+                    >
+                        Assessments
+                    </a>
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+
+<h2 style="margin-top: 35px;">
+    Class List
+</h2>
+
+<table>
+
+    <thead>
+        <tr>
+            <th>Admission No.</th>
+            <th>Student</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for enrollment in enrollments %}
+
+            <tr>
+
+                <td>
+                    {{ enrollment.student.admission_number }}
+                </td>
+
+                <td>
+                    {{ enrollment.student.full_name }}
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

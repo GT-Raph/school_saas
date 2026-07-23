@@ -1,0 +1,108 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Student Accounts
+{% endblock %}
+
+{% block content %}
+
+<div
+    style="
+        display: flex;
+        justify-content: space-between;
+    "
+>
+
+    <h1>
+        Student Accounts
+    </h1>
+
+    <div>
+
+        <a
+            class="button"
+            href="{% url 'portal:finance-record-payment' %}"
+        >
+            Record Payment
+        </a>
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:finance-debtors' %}"
+        >
+            Debtors
+        </a>
+
+    </div>
+
+</div>
+
+
+<form method="get">
+
+    <input
+        name="q"
+        value="{{ query }}"
+        placeholder="Search student"
+    >
+
+    <button class="button">
+        Search
+    </button>
+
+</form>
+
+
+<table style="margin-top: 20px;">
+
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Admission No.</th>
+            <th>Class</th>
+            <th>Balance</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for row in rows %}
+
+            <tr>
+
+                <td>
+                    {{ row.enrollment.student.full_name }}
+                </td>
+
+                <td>
+                    {{ row.enrollment.student.admission_number }}
+                </td>
+
+                <td>
+                    {{ row.enrollment.class_section }}
+                </td>
+
+                <td>
+                    GH₵{{ row.balance }}
+                </td>
+
+                <td>
+
+                    <a
+                        href="{% url 'portal:finance-student-statement' row.enrollment.id %}"
+                    >
+                        Statement
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

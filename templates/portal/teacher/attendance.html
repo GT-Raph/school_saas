@@ -1,0 +1,103 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Attendance
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ offering.class_section }}
+    Attendance
+</h1>
+
+<p>
+    {{ term.name }}
+    ·
+    {{ attendance_date }}
+</p>
+
+{% if session %}
+
+    <p>
+        Status:
+        <strong>
+            {{ session.get_status_display }}
+        </strong>
+    </p>
+
+{% endif %}
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <input
+        type="hidden"
+        name="attendance_date"
+        value="{{ attendance_date|date:'Y-m-d' }}"
+    >
+
+    {{ formset.management_form }}
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Student</th>
+                <th>Admission No.</th>
+                <th>Status</th>
+                <th>Remarks</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for form in formset %}
+
+                {{ form.enrollment_id }}
+
+                <tr>
+
+                    <td>
+                        {{ form.student_name.value }}
+                    </td>
+
+                    <td>
+                        {{ form.admission_number.value }}
+                    </td>
+
+                    <td>
+                        {{ form.status }}
+                        {{ form.status.errors }}
+                    </td>
+
+                    <td>
+                        {{ form.remarks }}
+                        {{ form.remarks.errors }}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+
+    <button
+        class="button"
+        type="submit"
+        style="margin-top: 20px;"
+    >
+        Save Attendance
+    </button>
+
+</form>
+
+{% endblock %}

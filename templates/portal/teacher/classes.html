@@ -1,62 +1,25 @@
 {% extends "portal/base.html" %}
 
-
-{% block title %}
-Teacher Dashboard
-{% endblock %}
-
-
 {% block heading %}
-Teacher Dashboard
+My Classes
 {% endblock %}
-
 
 {% block content %}
 
 <h1>
-    {{ staff.full_name }}
-</h1>
-
-<p>
-    {{ staff.job_title }}
-</p>
-
-
-<h2>
     My Teaching Assignments
-</h2>
-
-<a
-    class="button"
-    href="{% url 'portal:teacher-classes' %}"
->
-    Open My Classes
-</a>
+</h1>
 
 <table>
 
     <thead>
-
         <tr>
-            <th>
-                Academic Year
-            </th>
-
-            <th>
-                Class
-            </th>
-
-            <th>
-                Subject
-            </th>
-
-            <th>
-                Primary
-            </th>
+            <th>Year</th>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Action</th>
         </tr>
-
     </thead>
-
 
     <tbody>
 
@@ -77,13 +40,11 @@ Teacher Dashboard
                 </td>
 
                 <td>
-
-                    {% if assignment.is_primary %}
-                        Yes
-                    {% else %}
-                        No
-                    {% endif %}
-
+                    <a
+                        href="{% url 'portal:teacher-class-detail' assignment.offering.id %}"
+                    >
+                        Open Class
+                    </a>
                 </td>
 
             </tr>
@@ -91,11 +52,9 @@ Teacher Dashboard
         {% empty %}
 
             <tr>
-
                 <td colspan="4">
-                    No teaching assignments found.
+                    No active teaching assignments.
                 </td>
-
             </tr>
 
         {% endfor %}

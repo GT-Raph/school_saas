@@ -186,6 +186,10 @@ TEMPLATES = [
                     "django.contrib.messages.context_processors."
                     "messages"
                 ),
+                (
+                    "apps.portal.context_processors."
+                    "portal_access"
+                ),
             ],
         },
     },

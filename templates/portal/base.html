@@ -201,37 +201,59 @@
             Dashboard
         </a>
 
-        <a href="{% url 'portal:student-list' %}">
-            Students
-        </a>
 
-        <a href="{% url 'portal:guardian-list' %}">
-            Parents & Guardians
-        </a>
+        {% if portal_access.teacher %}
 
-        <a href="{% url 'portal:staff-list' %}">
-            Staff
-        </a>
+            <a href="{% url 'portal:teacher-classes' %}">
+                My Classes
+            </a>
 
-        <a href="#">
-            Academics
-        </a>
+        {% endif %}
 
-        <a href="#">
-            Attendance
-        </a>
 
-        <a href="#">
-            Finance
-        </a>
+        {% if portal_access.students %}
 
-        <a href="#">
-            Reports
-        </a>
+            <a href="{% url 'portal:student-list' %}">
+                Students
+            </a>
 
-        <a href="{% url 'portal:admin-studio' %}">
-            Settings
-        </a>
+        {% endif %}
+
+
+        {% if portal_access.guardians %}
+
+            <a href="{% url 'portal:guardian-list' %}">
+                Parents & Guardians
+            </a>
+
+        {% endif %}
+
+
+        {% if portal_access.staff %}
+
+            <a href="{% url 'portal:staff-list' %}">
+                Staff
+            </a>
+
+        {% endif %}
+
+
+        {% if portal_access.finance %}
+
+            <a href="{% url 'portal:finance-student-accounts' %}">
+                Finance
+            </a>
+
+        {% endif %}
+
+
+        {% if portal_access.settings %}
+
+            <a href="{% url 'portal:admin-studio' %}">
+                Settings
+            </a>
+
+        {% endif %}
 
     </aside>
 
