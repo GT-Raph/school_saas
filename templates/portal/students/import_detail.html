@@ -1,0 +1,239 @@
+{% extends "portal/base.html" %}
+
+
+{% block heading %}
+Student Import Review
+{% endblock %}
+
+
+{% block content %}
+
+<h1>
+    Import Preview
+</h1>
+
+
+<div class="cards">
+
+    <div class="card">
+
+        <div>
+            Total Rows
+        </div>
+
+        <div class="number">
+            {{ batch.total_rows }}
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Valid
+        </div>
+
+        <div class="number">
+            {{ batch.valid_rows }}
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Invalid
+        </div>
+
+        <div class="number">
+            {{ batch.invalid_rows }}
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Current Usage
+        </div>
+
+        <div class="number">
+
+            {{ usage.active_students }}
+            /
+            {{ usage.student_limit|default:"∞" }}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<p>
+
+    File:
+    <strong>
+        {{ batch.original_filename }}
+    </strong>
+
+</p>
+
+<p>
+
+    Status:
+    <strong>
+        {{ batch.get_status_display }}
+    </strong>
+
+</p>
+
+
+{% if batch.status == "staged" %}
+
+    {% if batch.invalid_rows == 0 %}
+
+        <form
+            method="post"
+            action="{% url 'portal:student-import-confirm' batch.id %}"
+            style="
+                margin-bottom: 25px;
+            "
+        >
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="button"
+            >
+                Confirm Import
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <div
+            style="
+                background: #fee2e2;
+                padding: 15px;
+                margin-bottom: 20px;
+            "
+        >
+
+            This import contains errors.
+
+            Correct the spreadsheet
+            and upload it again.
+
+        </div>
+
+    {% endif %}
+
+{% endif %}
+
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>
+                Row
+            </th>
+
+            <th>
+                Admission No.
+            </th>
+
+            <th>
+                Student
+            </th>
+
+            <th>
+                Class
+            </th>
+
+            <th>
+                Status
+            </th>
+
+            <th>
+                Errors
+            </th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for row in rows %}
+
+            <tr>
+
+                <td>
+                    {{ row.row_number }}
+                </td>
+
+                <td>
+                    {{ row.normalized_data.admission_number }}
+                </td>
+
+                <td>
+
+                    {{ row.normalized_data.first_name }}
+
+                    {{ row.normalized_data.last_name }}
+
+                </td>
+
+                <td>
+
+                    {{ row.normalized_data.class_level_code }}
+
+                    {{ row.normalized_data.class_section_code }}
+
+                </td>
+
+                <td>
+
+                    {% if row.is_valid %}
+
+                        Valid
+
+                    {% else %}
+
+                        Invalid
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% for error in row.errors %}
+
+                        <div>
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

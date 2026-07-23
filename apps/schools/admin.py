@@ -2,10 +2,25 @@ from django.contrib import admin
 
 from .models import (
     School,
+    SchoolBranding,
     SchoolDomain,
     SchoolMembership,
     SchoolRole,
 )
+
+
+@admin.register(
+    SchoolBranding
+)
+class SchoolBrandingAdmin(
+    admin.ModelAdmin
+):
+    list_display = (
+        "school",
+        "primary_color",
+        "accent_color",
+        "updated_at",
+    )
 
 
 @admin.register(School)

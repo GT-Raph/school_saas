@@ -23,9 +23,20 @@ ROLE_PERMISSIONS = {
         "students.add_student",
         "students.change_student",
 
+
+        "students.view_studentimportbatch",
+        "students.add_studentimportbatch",
+        "students.view_studentimportrow",
+
+
         "guardians.view_guardian",
         "guardians.add_guardian",
         "guardians.change_guardian",
+
+
+        "guardians.view_studentguardian",
+        "guardians.add_studentguardian",
+        "guardians.change_studentguardian",
 
         "staff.view_staff",
         "staff.add_staff",

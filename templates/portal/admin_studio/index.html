@@ -1,0 +1,116 @@
+{% extends "portal/base.html" %}
+
+
+{% block heading %}
+School Administration Studio
+{% endblock %}
+
+
+{% block content %}
+
+<h1>
+    Administration Studio
+</h1>
+
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>
+            School Profile
+        </h3>
+
+        <p>
+            Name, timezone,
+            currency and language.
+        </p>
+
+        <a
+            href="{% url 'portal:school-profile-settings' %}"
+        >
+            Manage
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <h3>
+            Branding
+        </h3>
+
+        <p>
+            Logo, colours,
+            motto and login appearance.
+        </p>
+
+        <a
+            href="{% url 'portal:school-branding-settings' %}"
+        >
+            Manage
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <h3>
+            Subscription
+        </h3>
+
+        {% if usage.subscription %}
+
+            <p>
+
+                Plan:
+
+                <strong>
+                    {{ usage.subscription.plan.name }}
+                </strong>
+
+            </p>
+
+            <p>
+
+                Status:
+
+                {{ usage.subscription.get_status_display }}
+
+            </p>
+
+            <p>
+
+                Students:
+
+                {{ usage.active_students }}
+
+                /
+
+                {{ usage.student_limit }}
+
+            </p>
+
+            <p>
+
+                Remaining Capacity:
+
+                {{ usage.remaining }}
+
+            </p>
+
+        {% else %}
+
+            <p>
+                No subscription configured.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -151,3 +151,120 @@ class Student(SchoolOwnedModel):
             f"{self.full_name} "
             f"({self.admission_number})"
         )
+    
+class StudentImportBatch(SchoolOwnedModel):
+
+    class Status(models.TextChoices):
+        STAGED = "staged", "Staged"
+        PROCESSING = "processing", "Processing"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    original_filename = models.CharField(
+        max_length=255,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.STAGED,
+    )
+
+    total_rows = models.PositiveIntegerField(
+        default=0,
+    )
+
+    valid_rows = models.PositiveIntegerField(
+        default=0,
+    )
+
+    invalid_rows = models.PositiveIntegerField(
+        default=0,
+    )
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="student_import_batches",
+    )
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    error_message = models.TextField(
+        blank=True,
+    )
+
+    class Meta:
+        ordering = [
+            "-created_at",
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.original_filename} "
+            f"({self.get_status_display()})"
+        )
+
+
+class StudentImportRow(SchoolOwnedModel):
+
+    batch = models.ForeignKey(
+        StudentImportBatch,
+        on_delete=models.CASCADE,
+        related_name="rows",
+    )
+
+    row_number = models.PositiveIntegerField()
+
+    raw_data = models.JSONField(
+        default=dict,
+    )
+
+    normalized_data = models.JSONField(
+        default=dict,
+    )
+
+    errors = models.JSONField(
+        default=list,
+    )
+
+    is_valid = models.BooleanField(
+        default=False,
+    )
+
+    imported_student = models.ForeignKey(
+        Student,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="import_rows",
+    )
+
+    class Meta:
+        ordering = [
+            "row_number",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "batch",
+                    "row_number",
+                ],
+                name=(
+                    "unique_student_import_"
+                    "row_number"
+                ),
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.batch.original_filename} "
+            f"Row {self.row_number}"
+        )
