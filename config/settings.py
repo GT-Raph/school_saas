@@ -147,6 +147,8 @@ MIDDLEWARE = [
 
     "django.contrib.auth.middleware.AuthenticationMiddleware",
 
+    "apps.accounts.middleware.ForcePasswordChangeMiddleware",
+
     "apps.schools.middleware.TenantMiddleware",
 
     "django.contrib.messages.middleware.MessageMiddleware",

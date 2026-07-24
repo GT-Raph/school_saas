@@ -237,6 +237,31 @@
 
         {% endif %}
 
+        {% if portal_access.academic %}
+
+            <a href="{% url 'portal:academic-results-queue' %}">
+                Academic Management
+            </a>
+
+            <a href="{% url 'portal:academic-term-results-home' %}">
+                Term Results
+            </a>
+
+            <a href="{% url 'portal:promotion-dashboard' %}">
+                Promotions
+            </a>
+
+        {% endif %}
+        
+
+        {% if portal_access.users %}
+
+            <a href="{% url 'portal:school-user-list' %}">
+                User Accounts
+            </a>
+
+        {% endif %}
+
 
         {% if portal_access.finance %}
 

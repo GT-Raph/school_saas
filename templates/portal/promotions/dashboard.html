@@ -1,0 +1,81 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Promotion Management
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    Promotion Policies
+</h1>
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Academic Year</th>
+            <th>Class</th>
+            <th>Policy</th>
+            <th>Minimum Average</th>
+            <th></th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for policy in policies %}
+
+            <tr>
+
+                <td>
+                    {{ policy.academic_year.name }}
+                </td>
+
+                <td>
+                    {{ policy.class_level.name }}
+                </td>
+
+                <td>
+                    {{ policy.name }}
+                </td>
+
+                <td>
+                    {{ policy.minimum_overall_average }}%
+                </td>
+
+                <td>
+
+                    <form
+                        method="post"
+                        action="{% url 'portal:promotion-run-policy' policy.id %}"
+                        style="display:inline;"
+                    >
+
+                        {% csrf_token %}
+
+                        <button type="submit">
+                            Run Evaluation
+                        </button>
+
+                    </form>
+
+                    <a
+                        href="{% url 'portal:promotion-policy-results' policy.id %}"
+                    >
+                        View Results
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

@@ -17,6 +17,10 @@ from apps.academics.models import (
     SubjectOffering,
     TeacherAssignment,
 )
+from apps.guardians.models import (
+    Guardian,
+    StudentGuardian,
+)
 from apps.schools.models import (
     School,
     SchoolDomain,
@@ -24,6 +28,7 @@ from apps.schools.models import (
     SchoolRole,
 )
 from apps.staff.models import Staff
+from apps.students.models import Student
 
 
 @override_settings(
@@ -199,15 +204,12 @@ class TeacherObjectAccessTests(TestCase):
             password="Password123!",
         )
 
-        # Create teacher role.
         self.role = SchoolRole.objects.create(
             school=self.school,
             name="Teacher",
             code="teacher",
         )
 
-        # Give the teacher role permission to view
-        # teacher assignments.
         permission = Permission.objects.get(
             content_type__app_label=(
                 "academics"
@@ -221,7 +223,6 @@ class TeacherObjectAccessTests(TestCase):
             permission
         )
 
-        # Create memberships for both teachers.
         for user in [
             self.user_one,
             self.user_two,
@@ -383,4 +384,193 @@ class TeacherObjectAccessTests(TestCase):
         self.assertEqual(
             response.status_code,
             403,
+        )
+
+
+@override_settings(
+    ALLOWED_HOSTS=[
+        "testserver",
+        "parent-security.testserver",
+    ]
+)
+class ParentObjectAccessTests(TestCase):
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Parent Security School",
+            slug="parent-security",
+        )
+
+        SchoolDomain.objects.create(
+            school=self.school,
+            domain=(
+                "parent-security.testserver"
+            ),
+            is_verified=True,
+            is_primary=True,
+        )
+
+        self.parent_user = (
+            User.objects.create_user(
+                username="parent_one",
+                password="Password123!",
+            )
+        )
+
+        self.parent_role = (
+            SchoolRole.objects.create(
+                school=self.school,
+                name="Parent",
+                code="parent",
+            )
+        )
+
+        self.membership = (
+            SchoolMembership.objects.create(
+                user=self.parent_user,
+                school=self.school,
+                is_active=True,
+            )
+        )
+
+        self.membership.roles.add(
+            self.parent_role
+        )
+
+        self.guardian = (
+            Guardian.objects.create(
+                school=self.school,
+                user=self.parent_user,
+                first_name="Parent",
+                last_name="One",
+                phone_number="0200000001",
+            )
+        )
+
+        self.own_child = Student.objects.create(
+            school=self.school,
+            admission_number="P-001",
+            first_name="Own",
+            last_name="Child",
+        )
+
+        self.other_child = Student.objects.create(
+            school=self.school,
+            admission_number="P-002",
+            first_name="Other",
+            last_name="Child",
+        )
+
+        StudentGuardian.objects.create(
+            school=self.school,
+            guardian=self.guardian,
+            student=self.own_child,
+            relationship=(
+                StudentGuardian
+                .Relationship.MOTHER
+            ),
+            is_primary_contact=True,
+        )
+
+        self.client = Client()
+
+    def test_parent_can_open_own_child(
+        self,
+    ):
+        logged_in = self.client.login(
+            username="parent_one",
+            password="Password123!",
+        )
+
+        self.assertTrue(
+            logged_in
+        )
+
+        response = self.client.get(
+            reverse(
+                "portal:parent-child-detail",
+                kwargs={
+                    "student_id": (
+                        self.own_child.id
+                    ),
+                },
+            ),
+            HTTP_HOST=(
+                "parent-security.testserver"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+    def test_parent_cannot_open_other_child(
+        self,
+    ):
+        logged_in = self.client.login(
+            username="parent_one",
+            password="Password123!",
+        )
+
+        self.assertTrue(
+            logged_in
+        )
+
+        response = self.client.get(
+            reverse(
+                "portal:parent-child-detail",
+                kwargs={
+                    "student_id": (
+                        self.other_child.id
+                    ),
+                },
+            ),
+            HTTP_HOST=(
+                "parent-security.testserver"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            403,
+        )
+
+
+class SchoolUserManagementSecurityTests(
+    TestCase
+):
+
+    def test_membership_lookup_is_tenant_scoped(
+        self,
+    ):
+        school_a = School.objects.create(
+            name="School A Users",
+            slug="school-a-users",
+        )
+
+        school_b = School.objects.create(
+            name="School B Users",
+            slug="school-b-users",
+        )
+
+        user = User.objects.create_user(
+            username="shared-test-user",
+            password="Password123!",
+        )
+
+        membership_b = (
+            SchoolMembership.objects.create(
+                school=school_b,
+                user=user,
+            )
+        )
+
+        self.assertFalse(
+            SchoolMembership.objects
+            .filter(
+                school=school_a,
+                id=membership_b.id,
+            )
+            .exists()
         )

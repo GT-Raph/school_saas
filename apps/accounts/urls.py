@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     SchoolLoginView,
+    force_password_change,
     school_logout,
 )
 
@@ -20,5 +21,11 @@ urlpatterns = [
         "logout/",
         school_logout,
         name="logout",
+    ),
+
+    path(
+        "change-temporary-password/",
+        force_password_change,
+        name="force-password-change",
     ),
 ]

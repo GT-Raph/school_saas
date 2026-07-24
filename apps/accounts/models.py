@@ -28,6 +28,14 @@ class User(AbstractUser):
         help_text="Allows access to platform-level SaaS administration.",
     )
 
+    must_change_password = models.BooleanField(
+        default=False,
+        help_text=(
+            "Forces the user to change a temporary "
+            "password before continuing."
+        ),
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
     )

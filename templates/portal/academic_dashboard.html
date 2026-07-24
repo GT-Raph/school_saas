@@ -42,4 +42,29 @@ Academic Management
 
 </div>
 
+<div style="margin-bottom: 25px;">
+
+    <a
+        class="button"
+        href="{% url 'portal:academic-results-queue' %}"
+    >
+        Review Results
+    </a>
+
+    <a
+        class="button button-secondary"
+        href="{% url 'portal:academic-term-results-home' %}"
+    >
+        Term Results
+    </a>
+
+    <a
+        class="button button-secondary"
+        href="{% url 'portal:promotion-dashboard' %}"
+    >
+        Promotions
+    </a>
+
+</div>
+
 {% endblock %}

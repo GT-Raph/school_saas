@@ -18,11 +18,9 @@ Parent Portal
     {{ guardian.full_name }}
 </h1>
 
-
 <h2>
     My Children
 </h2>
-
 
 <div class="cards">
 
@@ -43,6 +41,13 @@ Parent Portal
                 Status:
                 {{ student.get_status_display }}
             </p>
+
+            <a
+                class="button"
+                href="{% url 'portal:parent-child-detail' student.id %}"
+            >
+                View Child
+            </a>
 
         </div>
 

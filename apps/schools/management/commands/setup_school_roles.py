@@ -71,6 +71,7 @@ ROLE_PERMISSIONS = {
         "reports.view_termresult",
         "reports.change_termresult",
         "reports.view_reportcard",
+        "reports.change_reportcard",
 
         "promotions.view_promotionevaluation",
         "promotions.run_promotion_evaluation",

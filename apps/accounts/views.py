@@ -1,10 +1,24 @@
-from django.contrib.auth import logout
+from django.contrib.auth import (
+    logout, update_session_auth_hash,
+    )
 from django.contrib.auth.views import (
     LoginView,
 )
 from django.core.exceptions import (
     PermissionDenied,
 )
+
+from django.contrib.auth.forms import (
+    PasswordChangeForm,
+)
+
+from django.contrib.auth.decorators import (
+    login_required,
+)
+
+from django.contrib import messages
+from django.shortcuts import render
+
 from django.shortcuts import redirect
 
 from apps.schools.models import (
@@ -103,4 +117,59 @@ def school_logout(
 
     return redirect(
         "accounts:login"
+    )
+
+@login_required
+def force_password_change(
+    request,
+):
+    if request.method == "POST":
+
+        form = PasswordChangeForm(
+            user=request.user,
+            data=request.POST,
+        )
+
+        if form.is_valid():
+
+            user = form.save()
+
+            user.must_change_password = False
+
+            user.save(
+                update_fields=[
+                    "must_change_password",
+                    "updated_at",
+                ]
+            )
+
+            update_session_auth_hash(
+                request,
+                user,
+            )
+
+            messages.success(
+                request,
+                (
+                    "Your password was changed "
+                    "successfully."
+                ),
+            )
+
+            return redirect(
+                "/portal/"
+            )
+
+    else:
+
+        form = PasswordChangeForm(
+            user=request.user
+        )
+
+    return render(
+        request,
+        "accounts/force_password_change.html",
+        {
+            "form": form,
+        },
     )

@@ -1,0 +1,76 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Promotion Decision
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ evaluation.enrollment.student.full_name }}
+</h1>
+
+<div class="card">
+
+    <p>
+
+        System Recommendation:
+
+        <strong>
+            {{ evaluation.get_recommendation_display }}
+        </strong>
+
+    </p>
+
+    <p>
+        Annual Average:
+        {{ evaluation.annual_average|default:"—" }}
+    </p>
+
+    <p>
+        Failed Subjects:
+        {{ evaluation.failed_subjects }}
+    </p>
+
+    <p>
+        Attendance:
+        {{ evaluation.attendance_percentage|default:"—" }}
+    </p>
+
+    <h3>
+        Reasons
+    </h3>
+
+    {% for reason in evaluation.reasons %}
+
+        <p>
+            {{ reason }}
+        </p>
+
+    {% empty %}
+
+        <p>
+            All promotion requirements were met.
+        </p>
+
+    {% endfor %}
+
+</div>
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button
+        class="button"
+        type="submit"
+    >
+        Approve Decision
+    </button>
+
+</form>
+
+{% endblock %}

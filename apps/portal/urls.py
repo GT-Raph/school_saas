@@ -1,8 +1,8 @@
 from django.urls import path
 
-from . import admin_views, teacher_views, finance_views
+from apps.portal import family_views
 
-from . import views
+from . import admin_views, teacher_views, finance_views, academic_views, views, user_views, promotion_views
 
 
 app_name = "portal"
@@ -75,6 +75,51 @@ urlpatterns = [
         "students/<uuid:student_id>/edit/",
         admin_views.student_edit,
         name="student-edit",
+    ),
+
+
+    path(
+        "academic/promotions/",
+        promotion_views.promotion_dashboard,
+        name="promotion-dashboard",
+    ),
+
+    path(
+        (
+            "academic/promotions/"
+            "<uuid:policy_id>/run/"
+        ),
+        promotion_views.promotion_run_policy,
+        name="promotion-run-policy",
+    ),
+
+    path(
+        (
+            "academic/promotions/"
+            "<uuid:policy_id>/results/"
+        ),
+        promotion_views.promotion_policy_results,
+        name="promotion-policy-results",
+    ),
+
+    path(
+        (
+            "academic/promotions/"
+            "evaluation/"
+            "<uuid:evaluation_id>/decide/"
+        ),
+        promotion_views.promotion_decide,
+        name="promotion-decide",
+    ),
+
+    path(
+        (
+            "academic/promotions/"
+            "decision/"
+            "<uuid:decision_id>/execute/"
+        ),
+        promotion_views.promotion_execute,
+        name="promotion-execute",
     ),
 
 
@@ -303,5 +348,131 @@ urlpatterns = [
         "finance/debtors/",
         finance_views.finance_debtors,
         name="finance-debtors",
+    ),
+
+    path(
+        "settings/users/",
+        user_views.school_user_list,
+        name="school-user-list",
+    ),
+
+    path(
+        "settings/users/create/",
+        user_views.school_user_create,
+        name="school-user-create",
+    ),
+
+    path(
+        (
+            "settings/users/"
+            "<uuid:membership_id>/"
+        ),
+        user_views.school_user_edit,
+        name="school-user-edit",
+    ),
+
+     path(
+        "academic/results/",
+        academic_views.academic_results_queue,
+        name="academic-results-queue",
+    ),
+
+    path(
+        (
+            "academic/results/"
+            "<uuid:result_id>/approve/"
+        ),
+        academic_views.academic_approve_result,
+        name="academic-approve-result",
+    ),
+
+    path(
+        "academic/term-results/",
+        academic_views.academic_term_results_home,
+        name="academic-term-results-home",
+    ),
+
+    path(
+        (
+            "academic/term-results/"
+            "<uuid:term_id>/"
+            "<uuid:section_id>/"
+        ),
+        academic_views.academic_term_results,
+        name="academic-term-results",
+    ),
+
+    path(
+        (
+            "academic/term-results/"
+            "<uuid:term_id>/"
+            "<uuid:section_id>/calculate/"
+        ),
+        (
+            academic_views
+            .academic_calculate_term_results
+        ),
+        name="academic-calculate-term-results",
+    ),
+
+    path(
+        (
+            "academic/term-result/"
+            "<uuid:term_result_id>/approve/"
+        ),
+        (
+            academic_views
+            .academic_approve_term_result
+        ),
+        name="academic-approve-term-result",
+    ),
+
+    path(
+        (
+            "academic/term-result/"
+            "<uuid:term_result_id>/report/"
+            "generate/"
+        ),
+        (
+            academic_views
+            .academic_generate_report_card
+        ),
+        name="academic-generate-report-card",
+    ),
+
+    path(
+        (
+            "academic/report-card/"
+            "<uuid:report_card_id>/publish/"
+        ),
+        (
+            academic_views
+            .academic_publish_report_card
+        ),
+        name="academic-publish-report-card",
+    ),
+
+     path(
+        (
+            "parent/children/"
+            "<uuid:student_id>/"
+        ),
+        family_views.parent_child_detail,
+        name="parent-child-detail",
+    ),
+
+    path(
+        "student/my-records/",
+        family_views.student_self_service,
+        name="student-self-service",
+    ),
+
+    path(
+        (
+            "report-cards/"
+            "<uuid:report_card_id>/"
+        ),
+        family_views.family_report_card,
+        name="family-report-card",
     ),
 ]

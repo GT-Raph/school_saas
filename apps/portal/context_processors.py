@@ -43,6 +43,20 @@ def portal_access(
     return {
         "portal_access": {
 
+            "academic": (
+                allowed(
+                    "assessments.approve_subject_result"
+                )
+                or allowed(
+                    "reports.view_termresult"
+                )
+            ),
+
+            "users":
+                allowed(
+                    "schools.manage_school_users"
+                ),
+
             "students":
                 allowed(
                     "students.view_student"

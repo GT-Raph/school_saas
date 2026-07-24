@@ -1,0 +1,268 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Student Overview
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ student.full_name }}
+</h1>
+
+<p>
+    Admission Number:
+    {{ student.admission_number }}
+</p>
+
+
+<div class="cards">
+
+    <div class="card">
+
+        <div>
+            Current Class
+        </div>
+
+        <div class="number">
+
+            {% if current_enrollment %}
+
+                {{ current_enrollment.class_section }}
+
+            {% else %}
+
+                —
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Outstanding Fees
+        </div>
+
+        <div class="number">
+
+            {% if balance != None %}
+
+                GH₵{{ balance }}
+
+            {% else %}
+
+                —
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<h2>
+    Published Results
+</h2>
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Academic Year</th>
+            <th>Term</th>
+            <th>Average</th>
+            <th>Failed Subjects</th>
+            <th>Attendance</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for result in term_results %}
+
+            <tr>
+
+                <td>
+                    {{ result.term.academic_year.name }}
+                </td>
+
+                <td>
+                    {{ result.term.name }}
+                </td>
+
+                <td>
+                    {{ result.average_score }}%
+                </td>
+
+                <td>
+                    {{ result.failed_subjects }}
+                </td>
+
+                <td>
+
+                    {% if result.attendance_percentage != None %}
+
+                        {{ result.attendance_percentage }}%
+
+                    {% else %}
+
+                        —
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+                    No published results.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+
+<h2 style="margin-top: 35px;">
+    Report Cards
+</h2>
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Academic Year</th>
+            <th>Term</th>
+            <th>Report Number</th>
+            <th></th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for report in report_cards %}
+
+            <tr>
+
+                <td>
+                    {{ report.term_result.term.academic_year.name }}
+                </td>
+
+                <td>
+                    {{ report.term_result.term.name }}
+                </td>
+
+                <td>
+                    {{ report.report_number }}
+                </td>
+
+                <td>
+
+                    <a
+                        href="{% url 'portal:family-report-card' report.id %}"
+                    >
+                        View
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+                    No published report cards.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+
+<h2 style="margin-top: 35px;">
+    Financial Statement
+</h2>
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Debit</th>
+            <th>Credit</th>
+            <th>Balance</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for row in statement %}
+
+            <tr>
+
+                <td>
+                    {{ row.date }}
+                </td>
+
+                <td>
+                    {{ row.description }}
+                </td>
+
+                <td>
+                    GH₵{{ row.debit }}
+                </td>
+
+                <td>
+                    GH₵{{ row.credit }}
+                </td>
+
+                <td>
+                    GH₵{{ row.balance }}
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+                    No financial transactions.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}
