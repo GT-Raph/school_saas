@@ -1,0 +1,190 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Term Results
+{% endblock %}
+
+{% block content %}
+
+<div
+    style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    "
+>
+
+    <div>
+
+        <h1>
+            {{ section }}
+        </h1>
+
+        <p>
+            {{ term.academic_year.name }}
+            ·
+            {{ term.name }}
+        </p>
+
+    </div>
+
+
+    <form
+        method="post"
+        action="{% url 'portal:academic-calculate-term-results' term.id section.id %}"
+    >
+
+        {% csrf_token %}
+
+        <button
+            class="button"
+            type="submit"
+        >
+            Calculate Term Results
+        </button>
+
+    </form>
+
+</div>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Student</th>
+            <th>Average</th>
+            <th>Failed</th>
+            <th>Attendance</th>
+            <th>Status</th>
+            <th>Report Card</th>
+            <th>Actions</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for row in rows %}
+
+            <tr>
+
+                <td>
+                    {{ row.enrollment.student.full_name }}
+                </td>
+
+                {% if row.term_result %}
+
+                    <td>
+                        {{ row.term_result.average_score }}%
+                    </td>
+
+                    <td>
+                        {{ row.term_result.failed_subjects }}
+                    </td>
+
+                    <td>
+
+                        {% if row.term_result.attendance_percentage != None %}
+
+                            {{ row.term_result.attendance_percentage }}%
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ row.term_result.get_status_display }}
+                    </td>
+
+                    <td>
+
+                        {% if row.report_card %}
+
+                            {{ row.report_card.get_status_display }}
+
+                        {% else %}
+
+                            Not generated
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if row.term_result.status == "draft" %}
+
+                            <form
+                                method="post"
+                                action="{% url 'portal:academic-approve-term-result' row.term_result.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button type="submit">
+                                    Approve Result
+                                </button>
+
+                            </form>
+
+                        {% elif row.term_result.status == "approved" and not row.report_card %}
+
+                            <form
+                                method="post"
+                                action="{% url 'portal:academic-generate-report-card' row.term_result.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button type="submit">
+                                    Generate Report
+                                </button>
+
+                            </form>
+
+                        {% elif row.report_card and row.report_card.status == "draft" %}
+
+                            <form
+                                method="post"
+                                action="{% url 'portal:academic-publish-report-card' row.report_card.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button type="submit">
+                                    Publish
+                                </button>
+
+                            </form>
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </td>
+
+                {% else %}
+
+                    <td colspan="6">
+                        Not calculated
+                    </td>
+
+                {% endif %}
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

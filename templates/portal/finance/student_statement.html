@@ -1,0 +1,96 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Student Financial Statement
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ enrollment.student.full_name }}
+</h1>
+
+<p>
+    {{ enrollment.student.admission_number }}
+    ·
+    {{ enrollment.class_section }}
+</p>
+
+
+<div class="card">
+
+    <div>
+        Current Balance
+    </div>
+
+    <div class="number">
+        GH₵{{ balance }}
+    </div>
+
+</div>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Reference</th>
+            <th>Debit</th>
+            <th>Credit</th>
+            <th>Balance</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for row in statement %}
+
+            <tr>
+
+                <td>
+                    {{ row.date }}
+                </td>
+
+                <td>
+                    {{ row.description }}
+                </td>
+
+                <td>
+                    {{ row.reference }}
+                </td>
+
+                <td>
+                    GH₵{{ row.debit }}
+                </td>
+
+                <td>
+                    GH₵{{ row.credit }}
+                </td>
+
+                <td>
+                    GH₵{{ row.balance }}
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="6">
+                    No transactions.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

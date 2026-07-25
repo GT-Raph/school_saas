@@ -1,0 +1,161 @@
+{% extends "portal/base.html" %}
+
+
+{% block title %}
+Students
+{% endblock %}
+
+
+{% block heading %}
+Student Management
+{% endblock %}
+
+
+{% block content %}
+
+<div
+    style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    "
+>
+
+    <div>
+
+        <h1>
+            Students
+        </h1>
+
+    </div>
+
+    <div>
+
+        <a
+            class="button"
+            href="{% url 'portal:student-admit' %}"
+        >
+            + Admit Student
+        </a>
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:student-import' %}"
+        >
+            Bulk Import
+        </a>
+
+    </div>
+
+</div>
+
+
+<form
+    method="get"
+    style="
+        margin-bottom: 20px;
+    "
+>
+
+    <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search name or admission number"
+        style="
+            max-width: 400px;
+        "
+    >
+
+    <button
+        class="button"
+        type="submit"
+    >
+        Search
+    </button>
+
+</form>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>
+                Admission No.
+            </th>
+
+            <th>
+                Student
+            </th>
+
+            <th>
+                Gender
+            </th>
+
+            <th>
+                Status
+            </th>
+
+            <th>
+                Action
+            </th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for student in students %}
+
+            <tr>
+
+                <td>
+                    {{ student.admission_number }}
+                </td>
+
+                <td>
+                    {{ student.full_name }}
+                </td>
+
+                <td>
+                    {{ student.get_gender_display }}
+                </td>
+
+                <td>
+                    {{ student.get_status_display }}
+                </td>
+
+                <td>
+
+                    <a
+                        href="{% url 'portal:student-detail' student.id %}"
+                    >
+                        View
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+                    No students found.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

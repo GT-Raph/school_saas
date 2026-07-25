@@ -1,31 +1,48 @@
 services:
   - type: web
-
-    name: school-saas
-
+    name: school-saas-staging
     runtime: python
-
     plan: free
 
-    buildCommand: bash build.sh
+    buildCommand: ./build.sh
 
-    startCommand: gunicorn config.wsgi:application
+    startCommand: >-
+      gunicorn config.wsgi:application
+      --bind 0.0.0.0:$PORT
+      --workers 1
+      --threads 4
+      --timeout 120
+      --access-logfile -
+      --error-logfile -
 
-    healthCheckPath: /health/
+    healthCheckPath: /health/ready/
+
+    autoDeploy: true
 
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.9
 
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
-
-      - key: DJANGO_DEBUG
+      - key: DEBUG
         value: "False"
+
+      - key: SECRET_KEY
+        generateValue: true
 
       - key: DATABASE_URL
         sync: false
 
-      - key: ALLOWED_HOSTS
-        value: ".onrender.com"
+      - key: DEFAULT_TENANT_SLUG
+        value: demo-international-school
 
-      - key: CSRF_TRUSTED_ORIGINS
+      - key: LOG_LEVEL
+        value: INFO
+
+      - key: BOOTSTRAP_ADMIN_USERNAME
+        value: platform_admin
+
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+
+      - key: BOOTSTRAP_ADMIN_PASSWORD
         sync: false

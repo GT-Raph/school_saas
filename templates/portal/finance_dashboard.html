@@ -1,0 +1,163 @@
+{% extends "portal/base.html" %}
+
+
+{% block title %}
+Finance Dashboard
+{% endblock %}
+
+
+{% block heading %}
+Finance Dashboard
+{% endblock %}
+
+
+{% block content %}
+
+<div class="cards">
+
+    <div class="card">
+
+        <div>
+            Total Charges
+        </div>
+
+        <div class="number">
+            GH₵{{ total_billed }}
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Credits Applied
+        </div>
+
+        <div class="number">
+            GH₵{{ total_credits }}
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div>
+            Outstanding
+        </div>
+
+        <div class="number">
+            GH₵{{ outstanding }}
+        </div>
+
+    </div>
+
+</div>
+
+<div style="margin-bottom: 25px;">
+
+    <a
+        class="button"
+        href="{% url 'portal:finance-record-payment' %}"
+    >
+        Record Payment
+    </a>
+
+    <a
+        class="button button-secondary"
+        href="{% url 'portal:finance-invoices' %}"
+    >
+        Invoices
+    </a>
+
+    <a
+        class="button button-secondary"
+        href="{% url 'portal:finance-student-accounts' %}"
+    >
+        Student Accounts
+    </a>
+
+    <a
+        class="button button-secondary"
+        href="{% url 'portal:finance-debtors' %}"
+    >
+        Debtors
+    </a>
+
+</div>
+
+
+<h2>
+    Recent Payments
+</h2>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>
+                Date
+            </th>
+
+            <th>
+                Student
+            </th>
+
+            <th>
+                Payment Number
+            </th>
+
+            <th>
+                Amount
+            </th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for payment in recent_payments %}
+
+            <tr>
+
+                <td>
+                    {{ payment.paid_at }}
+                </td>
+
+                <td>
+                    {{ payment.enrollment.student.full_name }}
+                </td>
+
+                <td>
+                    {{ payment.payment_number }}
+                </td>
+
+                <td>
+                    GH₵{{ payment.amount }}
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+                    No payments recorded.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

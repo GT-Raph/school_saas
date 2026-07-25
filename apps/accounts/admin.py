@@ -13,6 +13,7 @@ class CustomUserAdmin(UserAdmin):
                 "fields": (
                     "phone_number",
                     "is_platform_admin",
+                    "must_change_password",
                 )
             },
         ),
@@ -25,6 +26,7 @@ class CustomUserAdmin(UserAdmin):
                 "fields": (
                     "phone_number",
                     "is_platform_admin",
+                    "must_change_password",
                 )
             },
         ),

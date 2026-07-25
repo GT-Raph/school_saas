@@ -1,0 +1,4 @@
+admission_number,first_name,middle_name,last_name,date_of_birth,gender,admission_date,academic_year,class_level_code,class_section_code,enrolled_on,phone_number,email,guardian_first_name,guardian_last_name,guardian_phone,guardian_email,guardian_relationship
+DIS-2026-1001,Esi,Akua,Boateng,2016-04-12,female,2026-09-01,2026/2027,basic-4,a,2026-09-01,,,Akosua,Boateng,0241111111,akosua@example.com,mother
+DIS-2026-1002,Kojo,Kwame,Owusu,2016-08-22,male,2026-09-01,2026/2027,basic-4,a,2026-09-01,,,Yaw,Owusu,0242222222,yaw@example.com,father
+DIS-999,Ama,Test,WRONGYEAR,basic-99,x,2026-09-01

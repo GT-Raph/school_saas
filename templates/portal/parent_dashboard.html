@@ -1,0 +1,64 @@
+{% extends "portal/base.html" %}
+
+
+{% block title %}
+Parent Portal
+{% endblock %}
+
+
+{% block heading %}
+Parent Portal
+{% endblock %}
+
+
+{% block content %}
+
+<h1>
+    Welcome,
+    {{ guardian.full_name }}
+</h1>
+
+<h2>
+    My Children
+</h2>
+
+<div class="cards">
+
+    {% for student in children %}
+
+        <div class="card">
+
+            <strong>
+                {{ student.full_name }}
+            </strong>
+
+            <p>
+                Admission Number:
+                {{ student.admission_number }}
+            </p>
+
+            <p>
+                Status:
+                {{ student.get_status_display }}
+            </p>
+
+            <a
+                class="button"
+                href="{% url 'portal:parent-child-detail' student.id %}"
+            >
+                View Child
+            </a>
+
+        </div>
+
+    {% empty %}
+
+        <div class="card">
+            No linked students found.
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

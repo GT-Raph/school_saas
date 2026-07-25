@@ -1,0 +1,115 @@
+{% extends "portal/base.html" %}
+
+
+{% block heading %}
+Parents & Guardians
+{% endblock %}
+
+
+{% block content %}
+
+<div
+    style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    "
+>
+
+    <h1>
+        Parents & Guardians
+    </h1>
+
+    <div>
+
+        <a
+            class="button"
+            href="{% url 'portal:guardian-create' %}"
+        >
+            + Add Guardian
+        </a>
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:guardian-link' %}"
+        >
+            Link to Student
+        </a>
+
+    </div>
+
+</div>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>
+                Name
+            </th>
+
+            <th>
+                Phone
+            </th>
+
+            <th>
+                Email
+            </th>
+
+            <th>
+                Status
+            </th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for guardian in guardians %}
+
+            <tr>
+
+                <td>
+                    {{ guardian.full_name }}
+                </td>
+
+                <td>
+                    {{ guardian.phone_number }}
+                </td>
+
+                <td>
+                    {{ guardian.email }}
+                </td>
+
+                <td>
+
+                    {% if guardian.is_active %}
+                        Active
+                    {% else %}
+                        Inactive
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+                <td colspan="4">
+                    No guardians found.
+                </td>
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

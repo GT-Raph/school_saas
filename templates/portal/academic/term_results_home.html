@@ -1,0 +1,46 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Term Results
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    Term Result Management
+</h1>
+
+<p>
+    Select a term and class.
+</p>
+
+
+{% for term in terms %}
+
+    <div class="card">
+
+        <h3>
+            {{ term.academic_year.name }}
+            —
+            {{ term.name }}
+        </h3>
+
+        {% for section in sections %}
+
+            <a
+                class="button button-secondary"
+                style="margin-bottom: 8px;"
+                href="{% url 'portal:academic-term-results' term.id section.id %}"
+            >
+
+                {{ section }}
+
+            </a>
+
+        {% endfor %}
+
+    </div>
+
+{% endfor %}
+
+{% endblock %}

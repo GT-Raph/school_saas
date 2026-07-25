@@ -1,0 +1,105 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+User Accounts
+{% endblock %}
+
+{% block content %}
+
+<div
+    style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    "
+>
+
+    <h1>
+        School User Accounts
+    </h1>
+
+    <a
+        class="button"
+        href="{% url 'portal:school-user-create' %}"
+    >
+        + Create Account
+    </a>
+
+</div>
+
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>User</th>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for membership in memberships %}
+
+            <tr>
+
+                <td>
+                    {{ membership.user.get_full_name|default:membership.user.username }}
+                </td>
+
+                <td>
+                    {{ membership.user.username }}
+                </td>
+
+                <td>
+
+                    {% for role in membership.roles.all %}
+
+                        {{ role.name }}
+
+                        {% if not forloop.last %}
+                            ,
+                        {% endif %}
+
+                    {% empty %}
+
+                        No role
+
+                    {% endfor %}
+
+                </td>
+
+                <td>
+
+                    {% if membership.is_active %}
+                        Active
+                    {% else %}
+                        Disabled
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <a
+                        href="{% url 'portal:school-user-edit' membership.id %}"
+                    >
+                        Manage
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Promotion Results
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ policy.name }}
+</h1>
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Student</th>
+            <th>Current Class</th>
+            <th>Average</th>
+            <th>Failed</th>
+            <th>Attendance</th>
+            <th>Recommendation</th>
+            <th>Reasons</th>
+            <th>Decision</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for evaluation in evaluations %}
+
+            <tr>
+
+                <td>
+                    {{ evaluation.enrollment.student.full_name }}
+                </td>
+
+                <td>
+                    {{ evaluation.enrollment.class_section }}
+                </td>
+
+                <td>
+                    {{ evaluation.annual_average|default:"—" }}
+                </td>
+
+                <td>
+                    {{ evaluation.failed_subjects }}
+                </td>
+
+                <td>
+                    {{ evaluation.attendance_percentage|default:"—" }}
+                </td>
+
+                <td>
+                    <strong>
+                        {{ evaluation.get_recommendation_display }}
+                    </strong>
+                </td>
+
+                <td>
+
+                    {% for reason in evaluation.reasons %}
+
+                        <div>
+                            {{ reason }}
+                        </div>
+
+                    {% empty %}
+
+                        All requirements met.
+
+                    {% endfor %}
+
+                </td>
+
+                <td>
+
+                    {% if evaluation.decision %}
+
+                        {{ evaluation.decision.get_final_decision_display }}
+
+                        {% if not evaluation.decision.executed_at %}
+
+                            <br>
+
+                            <a
+                                href="{% url 'portal:promotion-execute' evaluation.decision.id %}"
+                            >
+                                Execute
+                            </a>
+
+                        {% else %}
+
+                            <br>
+                            Executed
+
+                        {% endif %}
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'portal:promotion-decide' evaluation.id %}"
+                        >
+                            Review Decision
+                        </a>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

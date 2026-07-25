@@ -1,0 +1,105 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Enter Marks
+{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ assessment.name }}
+</h1>
+
+<p>
+    {{ offering.subject.name }}
+    ·
+    {{ offering.class_section }}
+</p>
+
+<p>
+    Maximum Score:
+    <strong>
+        {{ assessment.max_score }}
+    </strong>
+</p>
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+    {{ formset.management_form }}
+
+
+    {% if formset.non_form_errors %}
+
+        <div class="card">
+            {{ formset.non_form_errors }}
+        </div>
+
+    {% endif %}
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Student</th>
+                <th>Admission No.</th>
+                <th>Score</th>
+                <th>Absent</th>
+                <th>Comment</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for form in formset %}
+
+                {{ form.enrollment_id }}
+
+                <tr>
+
+                    <td>
+                        {{ form.student_name.value }}
+                    </td>
+
+                    <td>
+                        {{ form.admission_number.value }}
+                    </td>
+
+                    <td>
+                        {{ form.raw_score }}
+                        {{ form.raw_score.errors }}
+                    </td>
+
+                    <td>
+                        {{ form.is_absent }}
+                    </td>
+
+                    <td>
+                        {{ form.comment }}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+
+    <button
+        class="button"
+        type="submit"
+        style="margin-top: 20px;"
+    >
+        Save Marks
+    </button>
+
+</form>
+
+{% endblock %}

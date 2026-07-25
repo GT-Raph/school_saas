@@ -42,6 +42,22 @@ class School(TimeStampedModel):
         default="en",
     )
 
+    class Meta:
+        permissions = [
+            (
+                "manage_school_settings",
+                "Can manage school settings",
+            ),
+            (
+                "manage_school_users",
+                "Can manage school users",
+            ),
+            (
+                "manage_school_roles",
+                "Can manage school roles and permissions",
+            ),
+        ]
+
     def __str__(self) -> str:
         return self.name
 
@@ -163,3 +179,52 @@ class SchoolMembership(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user} @ {self.school}"
+    
+class SchoolBranding(TimeStampedModel):
+    """
+    Tenant-specific visual configuration.
+
+    Schools can customize their appearance
+    without touching source code.
+    """
+
+    school = models.OneToOneField(
+        School,
+        on_delete=models.CASCADE,
+        related_name="branding",
+    )
+
+    logo_url = models.URLField(
+        blank=True,
+    )
+
+    favicon_url = models.URLField(
+        blank=True,
+    )
+
+    login_background_url = models.URLField(
+        blank=True,
+    )
+
+    primary_color = models.CharField(
+        max_length=20,
+        default="#111827",
+    )
+
+    secondary_color = models.CharField(
+        max_length=20,
+        default="#FFFFFF",
+    )
+
+    accent_color = models.CharField(
+        max_length=20,
+        default="#2563EB",
+    )
+
+    motto = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"{self.school.name} Branding"

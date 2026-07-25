@@ -1,0 +1,97 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Payment Receipt
+{% endblock %}
+
+{% block content %}
+
+<div
+    class="card"
+    style="
+        max-width: 700px;
+    "
+>
+
+    <h1>
+        PAYMENT RECEIPT
+    </h1>
+
+    <p>
+        <strong>
+            {{ request.school.name }}
+        </strong>
+    </p>
+
+    <hr>
+
+    <p>
+        Receipt Number:
+        <strong>
+            {{ receipt.receipt_number }}
+        </strong>
+    </p>
+
+    <p>
+        Student:
+        <strong>
+            {{ receipt.snapshot.student.name }}
+        </strong>
+    </p>
+
+    <p>
+        Admission Number:
+        {{ receipt.snapshot.student.admission_number }}
+    </p>
+
+    <p>
+        Amount:
+        <strong>
+            GH₵{{ receipt.snapshot.amount }}
+        </strong>
+    </p>
+
+    <p>
+        Method:
+        {{ receipt.snapshot.method }}
+    </p>
+
+    <p>
+        Payer:
+        {{ receipt.snapshot.payer_name }}
+    </p>
+
+    <p>
+        Reference:
+        {{ receipt.snapshot.reference }}
+    </p>
+
+    <h3>
+        Allocations
+    </h3>
+
+    {% for allocation in receipt.snapshot.allocations %}
+
+        <p>
+
+            {{ allocation.invoice }}
+
+            —
+
+            GH₵{{ allocation.amount }}
+
+        </p>
+
+    {% endfor %}
+
+
+    <button
+        class="button"
+        onclick="window.print()"
+    >
+        Print Receipt
+    </button>
+
+</div>
+
+{% endblock %}

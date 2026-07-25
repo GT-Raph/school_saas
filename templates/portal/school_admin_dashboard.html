@@ -1,0 +1,56 @@
+{% extends "portal/base.html" %}
+
+{% block title %}
+School Administration
+{% endblock %}
+
+
+{% block heading %}
+School Administration
+{% endblock %}
+
+
+{% block content %}
+
+<h1>
+    Welcome,
+    {{ request.user.get_full_name|default:request.user.username }}
+</h1>
+
+<div class="cards">
+
+    <div class="card">
+        <div>
+            Active Students
+        </div>
+
+        <div class="number">
+            {{ student_count }}
+        </div>
+    </div>
+
+
+    <div class="card">
+        <div>
+            Active Enrollments
+        </div>
+
+        <div class="number">
+            {{ active_enrollments }}
+        </div>
+    </div>
+
+
+    <div class="card">
+        <div>
+            Student Invoices
+        </div>
+
+        <div class="number">
+            {{ invoice_count }}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -8,65 +8,273 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
+
+Django settings for the School Management SaaS project.
+
+Django version: 5.2.16 LTS
+Python version: 3.10+
 """
 
 import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+
+# -------------------------------------------------------------------
+# Base directory and environment
+# -------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 
 
+def env_bool(
+    name: str,
+    default: bool = False,
+) -> bool:
+    """
+    Read a Boolean environment variable.
+
+    Accepted true values:
+    1, true, yes, on
+    """
+
+    value = os.environ.get(name)
+
+    if value is None:
+        return default
+
+    return value.strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def env_list(
+    name: str,
+    default: list[str] | None = None,
+) -> list[str]:
+    """
+    Read a comma-separated environment variable.
+
+    Example:
+    ALLOWED_HOSTS=localhost,127.0.0.1,.example.com
+    """
+
+    value = os.environ.get(
+        name,
+        "",
+    )
+
+    if not value.strip():
+        return default or []
+
+    return [
+        item.strip()
+        for item in value.split(",")
+        if item.strip()
+    ]
+
+
+# -------------------------------------------------------------------
+# Environment mode
+# -------------------------------------------------------------------
+
+# Supports both the older DJANGO_DEBUG variable and DEBUG.
+DEBUG = env_bool(
+    "DJANGO_DEBUG",
+    default=env_bool(
+        "DEBUG",
+        default=True,
+    ),
+)
+
+
 # -------------------------------------------------------------------
 # Security
 # -------------------------------------------------------------------
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "unsafe-development-secret-key",
-)
-
-DEBUG = (
+# Supports both the older DJANGO_SECRET_KEY variable and SECRET_KEY.
+SECRET_KEY = (
     os.environ.get(
-        "DJANGO_DEBUG",
-        "False",
-    ).lower()
-    == "true"
+        "DJANGO_SECRET_KEY"
+    )
+    or os.environ.get(
+        "SECRET_KEY"
+    )
+)
+
+if not SECRET_KEY:
+
+    if DEBUG:
+        SECRET_KEY = (
+            "development-only-secret-key-"
+            "never-use-this-in-production"
+        )
+
+    else:
+        raise ImproperlyConfigured(
+            (
+                "DJANGO_SECRET_KEY or SECRET_KEY "
+                "must be configured when DEBUG=False."
+            )
+        )
+
+
+default_allowed_hosts = (
+    [
+        "127.0.0.1",
+        "localhost",
+        ".localhost",
+        "testserver",
+    ]
+    if DEBUG
+    else []
+)
+
+ALLOWED_HOSTS = env_list(
+    "ALLOWED_HOSTS",
+    default=default_allowed_hosts,
 )
 
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get(
-        "ALLOWED_HOSTS",
-        "127.0.0.1,localhost,.localhost",
-    ).split(",")
-    if host.strip()
-]
-
-render_hostname = os.environ.get(
-    "RENDER_EXTERNAL_HOSTNAME"
+default_csrf_origins = (
+    [
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ]
+    if DEBUG
+    else []
 )
 
-if render_hostname:
-    ALLOWED_HOSTS.append(
-        render_hostname
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=default_csrf_origins,
+)
+
+
+# Render automatically provides these environment variables.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get(
+    "RENDER_EXTERNAL_HOSTNAME",
+    "",
+).strip().lower()
+
+RENDER_EXTERNAL_URL = os.environ.get(
+    "RENDER_EXTERNAL_URL",
+    "",
+).strip()
+
+
+if RENDER_EXTERNAL_HOSTNAME:
+
+    if (
+        RENDER_EXTERNAL_HOSTNAME
+        not in ALLOWED_HOSTS
+    ):
+        ALLOWED_HOSTS.append(
+            RENDER_EXTERNAL_HOSTNAME
+        )
+
+
+if RENDER_EXTERNAL_URL:
+
+    normalized_render_url = (
+        RENDER_EXTERNAL_URL.rstrip("/")
+    )
+
+    if (
+        normalized_render_url
+        not in CSRF_TRUSTED_ORIGINS
+    ):
+        CSRF_TRUSTED_ORIGINS.append(
+            normalized_render_url
+        )
+
+
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        (
+            "ALLOWED_HOSTS cannot be empty "
+            "when DEBUG=False."
+        )
     )
 
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get(
-        "CSRF_TRUSTED_ORIGINS",
-        "http://127.0.0.1:8000,http://localhost:8000",
-    ).split(",")
-    if origin.strip()
-]
+# Basic browser security
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = "Lax"
+
+X_FRAME_OPTIONS = "DENY"
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+SECURE_REFERRER_POLICY = (
+    "strict-origin-when-cross-origin"
+)
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = (
+    "same-origin"
+)
+
+
+# Eight-hour authenticated session
+SESSION_COOKIE_AGE = (
+    8
+    * 60
+    * 60
+)
+
+
+# Request and upload limits
+DATA_UPLOAD_MAX_MEMORY_SIZE = (
+    10
+    * 1024
+    * 1024
+)
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = (
+    5
+    * 1024
+    * 1024
+)
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
+
+DATA_UPLOAD_MAX_NUMBER_FILES = 10
+
+FILE_UPLOAD_PERMISSIONS = 0o640
+
+
+if not DEBUG:
+
+    # Required when Django is running behind Render's proxy.
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https",
+    )
+
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_SECURE = True
+
+    CSRF_COOKIE_SECURE = True
+
+    # Start with one hour while staging is being tested.
+    SECURE_HSTS_SECONDS = 3600
+
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+    # Do not enable until all domains permanently support HTTPS.
+    SECURE_HSTS_PRELOAD = False
 
 
 # -------------------------------------------------------------------
@@ -74,12 +282,29 @@ CSRF_TRUSTED_ORIGINS = [
 # -------------------------------------------------------------------
 
 INSTALLED_APPS = [
+    # Project applications
     "apps.core.apps.CoreConfig",
     "apps.accounts.apps.AccountsConfig",
     "apps.schools.apps.SchoolsConfig",
     "apps.subscriptions.apps.SubscriptionsConfig",
     "apps.audit.apps.AuditConfig",
 
+    "apps.students.apps.StudentsConfig",
+    "apps.guardians.apps.GuardiansConfig",
+    "apps.staff.apps.StaffConfig",
+    "apps.academics.apps.AcademicsConfig",
+
+    "apps.attendance.apps.AttendanceConfig",
+    "apps.assessments.apps.AssessmentsConfig",
+
+    "apps.reports.apps.ReportsConfig",
+    "apps.promotions.apps.PromotionsConfig",
+
+    "apps.finance.apps.FinanceConfig",
+
+    "apps.portal.apps.PortalConfig",
+
+    # Django applications
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -98,6 +323,8 @@ MIDDLEWARE = [
 
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
+    "apps.core.middleware.RequestIDMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
 
     "django.middleware.common.CommonMiddleware",
@@ -106,7 +333,11 @@ MIDDLEWARE = [
 
     "django.contrib.auth.middleware.AuthenticationMiddleware",
 
+    # Resolve the school after authentication information is available.
     "apps.schools.middleware.TenantMiddleware",
+
+    # Force users to replace temporary passwords.
+    "apps.accounts.middleware.ForcePasswordChangeMiddleware",
 
     "django.contrib.messages.middleware.MessageMiddleware",
 
@@ -114,7 +345,13 @@ MIDDLEWARE = [
 ]
 
 
+# -------------------------------------------------------------------
+# URL and application entry points
+# -------------------------------------------------------------------
+
 ROOT_URLCONF = "config.urls"
+
+WSGI_APPLICATION = "config.wsgi.application"
 
 
 # -------------------------------------------------------------------
@@ -127,23 +364,33 @@ TEMPLATES = [
             "django.template.backends.django."
             "DjangoTemplates"
         ),
+
         "DIRS": [
-            BASE_DIR / "templates"
+            BASE_DIR / "templates",
         ],
+
         "APP_DIRS": True,
+
         "OPTIONS": {
             "context_processors": [
                 (
                     "django.template.context_processors."
                     "request"
                 ),
+
                 (
                     "django.contrib.auth.context_processors."
                     "auth"
                 ),
+
                 (
                     "django.contrib.messages.context_processors."
                     "messages"
+                ),
+
+                (
+                    "apps.portal.context_processors."
+                    "portal_access"
                 ),
             ],
         },
@@ -151,33 +398,55 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = "config.wsgi.application"
-
-
 # -------------------------------------------------------------------
 # Database
 # -------------------------------------------------------------------
 
 DATABASE_URL = os.environ.get(
-    "DATABASE_URL"
-)
+    "DATABASE_URL",
+    "",
+).strip()
+
 
 if DATABASE_URL:
+
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
+
             conn_max_age=60,
-            ssl_require=True,
+
+            conn_health_checks=True,
+
+            # Production database connections must use SSL.
+            ssl_require=not DEBUG,
         )
     }
-else:
+
+elif DEBUG:
+
     # Local emergency fallback only.
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "ENGINE": (
+                "django.db.backends.sqlite3"
+            ),
+
+            "NAME": (
+                BASE_DIR
+                / "db.sqlite3"
+            ),
         }
     }
+
+else:
+
+    raise ImproperlyConfigured(
+        (
+            "DATABASE_URL must be configured "
+            "when DEBUG=False."
+        )
+    )
 
 
 # -------------------------------------------------------------------
@@ -185,6 +454,12 @@ else:
 # -------------------------------------------------------------------
 
 AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_URL = "/login/"
+
+LOGIN_REDIRECT_URL = "/portal/"
+
+LOGOUT_REDIRECT_URL = "/login/"
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -194,18 +469,25 @@ AUTH_PASSWORD_VALIDATORS = [
             "UserAttributeSimilarityValidator"
         ),
     },
+
     {
         "NAME": (
             "django.contrib.auth.password_validation."
             "MinimumLengthValidator"
         ),
+
+        "OPTIONS": {
+            "min_length": 10,
+        },
     },
+
     {
         "NAME": (
             "django.contrib.auth.password_validation."
             "CommonPasswordValidator"
         ),
     },
+
     {
         "NAME": (
             "django.contrib.auth.password_validation."
@@ -232,13 +514,27 @@ USE_TZ = True
 # Static files
 # -------------------------------------------------------------------
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 STATIC_ROOT = (
-    BASE_DIR / "staticfiles"
+    BASE_DIR
+    / "staticfiles"
 )
 
-STATICFILES_DIRS = []
+
+STATIC_SOURCE_DIRECTORY = (
+    BASE_DIR
+    / "static"
+)
+
+STATICFILES_DIRS = (
+    [
+        STATIC_SOURCE_DIRECTORY
+    ]
+    if STATIC_SOURCE_DIRECTORY.exists()
+    else []
+)
+
 
 STORAGES = {
     "default": {
@@ -247,6 +543,7 @@ STORAGES = {
             "FileSystemStorage"
         ),
     },
+
     "staticfiles": {
         "BACKEND": (
             "whitenoise.storage."
@@ -255,6 +552,120 @@ STORAGES = {
     },
 }
 
+
+# Temporary local media configuration.
+# Do not rely on this for production uploads on Render.
+MEDIA_URL = "/media/"
+
+MEDIA_ROOT = (
+    BASE_DIR
+    / "media"
+)
+
+
+# -------------------------------------------------------------------
+# Multi-tenancy
+# -------------------------------------------------------------------
+
+# Local development tenant.
+DEV_TENANT_SLUG = os.environ.get(
+    "DEV_TENANT_SLUG",
+    "",
+).strip()
+
+
+# Used by deployment commands such as sync_render_domain.
+DEFAULT_TENANT_SLUG = os.environ.get(
+    "DEFAULT_TENANT_SLUG",
+    "",
+).strip()
+
+
+# -------------------------------------------------------------------
+# Logging
+# -------------------------------------------------------------------
+
+LOG_LEVEL = os.environ.get(
+    "LOG_LEVEL",
+    "INFO",
+).upper()
+
+
+LOGGING = {
+    "version": 1,
+
+    "disable_existing_loggers": False,
+
+    "filters": {
+        "request_id": {
+            "()": (
+                "apps.core.middleware."
+                "RequestIDFilter"
+            ),
+        },
+    },
+
+    "formatters": {
+        "console": {
+            "format": (
+                "%(asctime)s "
+                "%(levelname)s "
+                "%(name)s "
+                "request_id=%(request_id)s "
+                "%(message)s"
+            ),
+        },
+    },
+
+    "handlers": {
+        "console": {
+            "class": (
+                "logging.StreamHandler"
+            ),
+
+            "formatter": "console",
+
+            "filters": [
+                "request_id",
+            ],
+        },
+    },
+
+    "root": {
+        "handlers": [
+            "console",
+        ],
+
+        "level": LOG_LEVEL,
+    },
+
+    "loggers": {
+        "django": {
+            "handlers": [
+                "console",
+            ],
+
+            "level": LOG_LEVEL,
+
+            "propagate": False,
+        },
+
+        "apps": {
+            "handlers": [
+                "console",
+            ],
+
+            "level": LOG_LEVEL,
+
+            "propagate": False,
+        },
+    },
+}
+
+
+# -------------------------------------------------------------------
+# General Django settings
+# -------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = (
     "django.db.models.BigAutoField"

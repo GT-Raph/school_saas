@@ -1,0 +1,171 @@
+{% extends "portal/base.html" %}
+
+{% block heading %}
+Report Card
+{% endblock %}
+
+{% block content %}
+
+<div
+    class="card"
+    style="
+        max-width: 900px;
+    "
+>
+
+    <h1>
+        {{ request.school.name }}
+    </h1>
+
+    <h2>
+        Student Report Card
+    </h2>
+
+
+    <p>
+
+        Student:
+
+        <strong>
+            {{ report.snapshot.student.name }}
+        </strong>
+
+    </p>
+
+    <p>
+
+        Admission Number:
+
+        {{ report.snapshot.student.admission_number }}
+
+    </p>
+
+    <p>
+
+        Academic Year:
+
+        {{ report.snapshot.academic_year }}
+
+    </p>
+
+    <p>
+
+        Term:
+
+        {{ report.snapshot.term }}
+
+    </p>
+
+    <p>
+
+        Class:
+
+        {{ report.snapshot.class }}
+
+    </p>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Subject</th>
+                <th>Score</th>
+                <th>Grade</th>
+                <th>Remark</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for subject in report.snapshot.subjects %}
+
+                <tr>
+
+                    <td>
+                        {{ subject.subject }}
+                    </td>
+
+                    <td>
+                        {{ subject.score }}
+                    </td>
+
+                    <td>
+                        {{ subject.grade }}
+                    </td>
+
+                    <td>
+                        {{ subject.remark }}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+
+    <h3>
+        Summary
+    </h3>
+
+    <p>
+
+        Average:
+
+        {{ report.snapshot.summary.average_score }}%
+
+    </p>
+
+    <p>
+
+        Failed Subjects:
+
+        {{ report.snapshot.summary.failed_subjects }}
+
+    </p>
+
+    <p>
+
+        Attendance:
+
+        {{ report.snapshot.summary.attendance_percentage|default:"—" }}
+
+    </p>
+
+
+    <h3>
+        Comments
+    </h3>
+
+    <p>
+
+        Class Teacher:
+
+        {{ report.snapshot.comments.class_teacher|default:"—" }}
+
+    </p>
+
+    <p>
+
+        Headteacher:
+
+        {{ report.snapshot.comments.headteacher|default:"—" }}
+
+    </p>
+
+
+    <button
+        class="button"
+        onclick="window.print()"
+    >
+        Print Report
+    </button>
+
+</div>
+
+{% endblock %}
