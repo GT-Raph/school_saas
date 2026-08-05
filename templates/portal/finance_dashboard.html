@@ -1,4 +1,5 @@
 {% extends "portal/base.html" %}
+{% load humanize %}
 
 
 {% block title %}
@@ -6,158 +7,350 @@ Finance Dashboard
 {% endblock %}
 
 
-{% block heading %}
-Finance Dashboard
+{% block mobile_title %}
+Finance
 {% endblock %}
 
 
 {% block content %}
 
-<div class="cards">
+<div class="page-header">
 
-    <div class="card">
+    <div class="page-heading">
 
-        <div>
+        <h1>
+            Finance Dashboard
+        </h1>
+
+        <p>
+            Monitor billing, credits, payments and outstanding fees.
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
+
+        <a
+            class="button"
+            href="{% url 'portal:finance-record-payment' %}"
+        >
+            + Record Payment
+        </a>
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:finance-bulk-invoices' %}"
+        >
+            Generate Invoices
+        </a>
+
+    </div>
+
+</div>
+
+
+<div class="stat-grid">
+
+    <article class="stat-card stat-purple">
+
+        <div class="stat-label">
             Total Charges
         </div>
 
-        <div class="number">
-            GH₵{{ total_billed }}
+        <div class="stat-value">
+
+            {{ portal_theme.currency_code }}
+
+            {{ total_billed|floatformat:2|intcomma }}
+
         </div>
 
-    </div>
+        <div class="stat-caption">
+            Ledger debit entries
+        </div>
+
+    </article>
 
 
-    <div class="card">
+    <article class="stat-card stat-blue">
 
-        <div>
+        <div class="stat-label">
             Credits Applied
         </div>
 
-        <div class="number">
-            GH₵{{ total_credits }}
+        <div class="stat-value">
+
+            {{ portal_theme.currency_code }}
+
+            {{ total_credits|floatformat:2|intcomma }}
+
         </div>
 
-    </div>
+        <div class="stat-caption">
+            Payments and approved credits
+        </div>
+
+    </article>
 
 
-    <div class="card">
+    <article class="stat-card stat-orange">
 
-        <div>
+        <div class="stat-label">
             Outstanding
         </div>
 
-        <div class="number">
-            GH₵{{ outstanding }}
+        <div class="stat-value">
+
+            {{ portal_theme.currency_code }}
+
+            {{ outstanding|floatformat:2|intcomma }}
+
         </div>
+
+        <div class="stat-caption">
+            Current student-account balance
+        </div>
+
+    </article>
+
+
+    <article class="stat-card stat-green">
+
+        <div class="stat-label">
+            Recent Payments
+        </div>
+
+        <div class="stat-value">
+            {{ recent_payments|length }}
+        </div>
+
+        <div class="stat-caption">
+            Latest confirmed transactions
+        </div>
+
+    </article>
+
+</div>
+
+
+<div class="action-grid">
+
+    <a
+        class="action-card"
+        href="{% url 'portal:finance-student-accounts' %}"
+    >
+
+        <div class="action-card-label">
+            Accounts
+        </div>
+
+        <h3>
+            Student Accounts
+        </h3>
+
+        <p>
+            Review account balances and full student financial statements.
+        </p>
+
+        <span class="action-card-footer">
+            Open Accounts →
+        </span>
+
+    </a>
+
+
+    <a
+        class="action-card"
+        href="{% url 'portal:finance-invoices' %}"
+    >
+
+        <div class="action-card-label">
+            Billing
+        </div>
+
+        <h3>
+            Student Invoices
+        </h3>
+
+        <p>
+            Review drafts, issue invoices and track invoice balances.
+        </p>
+
+        <span class="action-card-footer">
+            View Invoices →
+        </span>
+
+    </a>
+
+
+    <a
+        class="action-card"
+        href="{% url 'portal:finance-record-payment' %}"
+    >
+
+        <div class="action-card-label">
+            Collections
+        </div>
+
+        <h3>
+            Record Payment
+        </h3>
+
+        <p>
+            Record a confirmed payment and automatically generate a receipt.
+        </p>
+
+        <span class="action-card-footer">
+            Record Payment →
+        </span>
+
+    </a>
+
+
+    <a
+        class="action-card"
+        href="{% url 'portal:finance-debtors' %}"
+    >
+
+        <div class="action-card-label">
+            Reporting
+        </div>
+
+        <h3>
+            Debtors Report
+        </h3>
+
+        <p>
+            Review students with current outstanding account balances.
+        </p>
+
+        <span class="action-card-footer">
+            View Debtors →
+        </span>
+
+    </a>
+
+</div>
+
+
+<div class="section-heading">
+
+    <div>
+
+        <h2>
+            Recent Payments
+        </h2>
+
+        <p>
+            Latest confirmed financial transactions.
+        </p>
 
     </div>
 
 </div>
 
-<div style="margin-bottom: 25px;">
 
-    <a
-        class="button"
-        href="{% url 'portal:finance-record-payment' %}"
-    >
-        Record Payment
-    </a>
+<section class="table-card">
 
-    <a
-        class="button button-secondary"
-        href="{% url 'portal:finance-invoices' %}"
-    >
-        Invoices
-    </a>
+    <div class="table-scroll">
 
-    <a
-        class="button button-secondary"
-        href="{% url 'portal:finance-student-accounts' %}"
-    >
-        Student Accounts
-    </a>
+        <table class="data-table">
 
-    <a
-        class="button button-secondary"
-        href="{% url 'portal:finance-debtors' %}"
-    >
-        Debtors
-    </a>
+            <thead>
 
-</div>
+                <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Payment Number</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                </tr>
 
+            </thead>
 
-<h2>
-    Recent Payments
-</h2>
+            <tbody>
 
+                {% for payment in recent_payments %}
 
-<table>
+                    <tr>
 
-    <thead>
+                        <td>
+                            {{ payment.paid_at|date:"d M Y, H:i" }}
+                        </td>
 
-        <tr>
+                        <td>
 
-            <th>
-                Date
-            </th>
+                            <div class="table-person">
 
-            <th>
-                Student
-            </th>
+                                <div class="table-avatar">
 
-            <th>
-                Payment Number
-            </th>
+                                    {{ payment.enrollment.student.first_name|first|upper }}
 
-            <th>
-                Amount
-            </th>
+                                    {{ payment.enrollment.student.last_name|first|upper }}
 
-        </tr>
+                                </div>
 
-    </thead>
+                                <div class="table-person-copy">
 
+                                    <strong>
+                                        {{ payment.enrollment.student.full_name }}
+                                    </strong>
 
-    <tbody>
+                                    <span>
+                                        {{ payment.enrollment.student.admission_number }}
+                                    </span>
 
-        {% for payment in recent_payments %}
+                                </div>
 
-            <tr>
+                            </div>
 
-                <td>
-                    {{ payment.paid_at }}
-                </td>
+                        </td>
 
-                <td>
-                    {{ payment.enrollment.student.full_name }}
-                </td>
+                        <td>
+                            {{ payment.payment_number }}
+                        </td>
 
-                <td>
-                    {{ payment.payment_number }}
-                </td>
+                        <td>
+                            {{ payment.get_method_display }}
+                        </td>
 
-                <td>
-                    GH₵{{ payment.amount }}
-                </td>
+                        <td>
 
-            </tr>
+                            <strong>
 
-        {% empty %}
+                                {{ portal_theme.currency_code }}
 
-            <tr>
+                                {{ payment.amount|floatformat:2|intcomma }}
 
-                <td colspan="4">
-                    No payments recorded.
-                </td>
+                            </strong>
 
-            </tr>
+                        </td>
 
-        {% endfor %}
+                    </tr>
 
-    </tbody>
+                {% empty %}
 
-</table>
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+                                No confirmed payments were found.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

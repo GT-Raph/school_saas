@@ -1,103 +1,204 @@
 {% extends "portal/base.html" %}
 
-{% block heading %}
+
+{% block title %}
 Attendance
 {% endblock %}
 
+
+{% block mobile_title %}
+Attendance
+{% endblock %}
+
+
 {% block content %}
 
-<h1>
-    {{ offering.class_section }}
-    Attendance
-</h1>
+<div class="page-header">
 
-<p>
-    {{ term.name }}
-    ·
-    {{ attendance_date }}
-</p>
+    <div class="page-heading">
+
+        <h1>
+            Take Attendance
+        </h1>
+
+        <p>
+            {{ offering.class_section }}
+            ·
+            {{ term.name }}
+            ·
+            {{ attendance_date|date:"d M Y" }}
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:teacher-class-detail' offering.id %}"
+        >
+            Back to Class
+        </a>
+
+    </div>
+
+</div>
+
 
 {% if session %}
 
-    <p>
-        Status:
+    <div
+        class="
+            notice-box
+            {% if session.status == 'locked' %}
+                notice-warning
+            {% elif session.status == 'submitted' %}
+                notice-success
+            {% endif %}
+        "
+        style="margin-bottom: 18px;"
+    >
+
+        Attendance session status:
+
         <strong>
             {{ session.get_status_display }}
         </strong>
-    </p>
+
+        {% if session.status == "locked" %}
+
+            This session can no longer be edited.
+
+        {% endif %}
+
+    </div>
 
 {% endif %}
 
 
-<form method="post">
+<section class="table-card">
 
-    {% csrf_token %}
+    <form method="post">
 
-    <input
-        type="hidden"
-        name="attendance_date"
-        value="{{ attendance_date|date:'Y-m-d' }}"
-    >
+        {% csrf_token %}
 
-    {{ formset.management_form }}
+        <input
+            type="hidden"
+            name="attendance_date"
+            value="{{ attendance_date|date:'Y-m-d' }}"
+        >
 
-
-    <table>
-
-        <thead>
-
-            <tr>
-                <th>Student</th>
-                <th>Admission No.</th>
-                <th>Status</th>
-                <th>Remarks</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            {% for form in formset %}
-
-                {{ form.enrollment_id }}
-
-                <tr>
-
-                    <td>
-                        {{ form.student_name.value }}
-                    </td>
-
-                    <td>
-                        {{ form.admission_number.value }}
-                    </td>
-
-                    <td>
-                        {{ form.status }}
-                        {{ form.status.errors }}
-                    </td>
-
-                    <td>
-                        {{ form.remarks }}
-                        {{ form.remarks.errors }}
-                    </td>
-
-                </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
+        {{ formset.management_form }}
 
 
-    <button
-        class="button"
-        type="submit"
-        style="margin-top: 20px;"
-    >
-        Save Attendance
-    </button>
+        {% if formset.non_form_errors %}
 
-</form>
+            <div class="notice-box notice-danger">
+                {{ formset.non_form_errors }}
+            </div>
+
+        {% endif %}
+
+
+        <div class="table-scroll">
+
+            <table class="data-table form-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Student</th>
+                        <th>Admission Number</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for form in formset %}
+
+                        {{ form.enrollment_id }}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="table-person">
+
+                                    <div class="table-avatar">
+                                        {{ form.student_name.value|first|upper }}
+                                    </div>
+
+                                    <div class="table-person-copy">
+
+                                        <strong>
+                                            {{ form.student_name.value }}
+                                        </strong>
+
+                                        <span>
+                                            {{ offering.class_section }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                {{ form.admission_number.value }}
+                            </td>
+
+                            <td>
+
+                                {{ form.status }}
+
+                                {{ form.status.errors }}
+
+                            </td>
+
+                            <td>
+
+                                {{ form.remarks }}
+
+                                {{ form.remarks.errors }}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% if not session or session.status != "locked" %}
+
+            <div
+                class="form-actions"
+                style="padding: 0 18px 18px;"
+            >
+
+                <button
+                    class="button"
+                    type="submit"
+                >
+                    Save Attendance
+                </button>
+
+            </div>
+
+        {% endif %}
+
+    </form>
+
+</section>
 
 {% endblock %}

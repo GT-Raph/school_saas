@@ -1,66 +1,136 @@
 {% extends "portal/base.html" %}
 
-{% block heading %}
+
+{% block title %}
 My Classes
 {% endblock %}
 
+
+{% block mobile_title %}
+My Classes
+{% endblock %}
+
+
 {% block content %}
 
-<h1>
-    My Teaching Assignments
-</h1>
+<div class="page-header">
 
-<table>
+    <div class="page-heading">
 
-    <thead>
-        <tr>
-            <th>Year</th>
-            <th>Class</th>
-            <th>Subject</th>
-            <th>Action</th>
-        </tr>
-    </thead>
+        <h1>
+            My Classes
+        </h1>
 
-    <tbody>
+        <p>
+            View your active teaching assignments and open class workspaces.
+        </p>
+
+    </div>
+
+</div>
+
+
+<div class="metric-strip">
+
+    <div class="metric-box">
+
+        <span>
+            Teacher
+        </span>
+
+        <strong>
+            {{ teacher.full_name }}
+        </strong>
+
+        <small>
+            Active teaching profile
+        </small>
+
+    </div>
+
+
+    <div class="metric-box">
+
+        <span>
+            Assignments
+        </span>
+
+        <strong>
+            {{ assignments|length }}
+        </strong>
+
+        <small>
+            Active class and subject assignments
+        </small>
+
+    </div>
+
+</div>
+
+
+{% if assignments %}
+
+    <div class="action-grid">
 
         {% for assignment in assignments %}
 
-            <tr>
+            <a
+                class="action-card"
+                href="{% url 'portal:teacher-class-detail' assignment.offering.id %}"
+            >
 
-                <td>
-                    {{ assignment.offering.academic_year.name }}
-                </td>
+                <div class="action-card-label">
+                    Teaching Assignment
+                </div>
 
-                <td>
-                    {{ assignment.offering.class_section }}
-                </td>
-
-                <td>
+                <h3>
                     {{ assignment.offering.subject.name }}
-                </td>
+                </h3>
 
-                <td>
-                    <a
-                        href="{% url 'portal:teacher-class-detail' assignment.offering.id %}"
-                    >
-                        Open Class
-                    </a>
-                </td>
+                <p>
+                    {{ assignment.offering.class_section }}
+                    ·
+                    {{ assignment.offering.academic_year.name }}
+                </p>
 
-            </tr>
 
-        {% empty %}
+                <div class="inline-metadata">
 
-            <tr>
-                <td colspan="4">
-                    No active teaching assignments.
-                </td>
-            </tr>
+                    {% if assignment.is_primary %}
+
+                        <span class="metadata-pill">
+                            Primary Teacher
+                        </span>
+
+                    {% endif %}
+
+                    <span class="metadata-pill">
+                        Active
+                    </span>
+
+                </div>
+
+
+                <span class="action-card-footer">
+                    Open Class →
+                </span>
+
+            </a>
 
         {% endfor %}
 
-    </tbody>
+    </div>
 
-</table>
+{% else %}
+
+    <div class="panel">
+
+        <div class="empty-state">
+            No active teaching assignments were found.
+        </div>
+
+    </div>
+
+{% endif %}
 
 {% endblock %}

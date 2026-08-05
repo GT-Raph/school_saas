@@ -1,91 +1,204 @@
 {% extends "portal/base.html" %}
+{% load humanize %}
 
-{% block heading %}
-Outstanding Fees
+
+{% block title %}
+Debtors Report
 {% endblock %}
+
+
+{% block mobile_title %}
+Debtors
+{% endblock %}
+
 
 {% block content %}
 
-<h1>
-    Debtors Report
-</h1>
+<div class="page-header">
 
+    <div class="page-heading">
 
-<div class="card">
+        <h1>
+            Debtors Report
+        </h1>
 
-    <div>
-        Total Outstanding
+        <p>
+            Students with current outstanding account balances.
+        </p>
+
     </div>
 
-    <div class="number">
-        GH₵{{ total_outstanding }}
+
+    <div class="page-actions">
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:finance-student-accounts' %}"
+        >
+            Student Accounts
+        </a>
+
+        <a
+            class="button"
+            href="{% url 'portal:finance-record-payment' %}"
+        >
+            Record Payment
+        </a>
+
     </div>
 
 </div>
 
 
-<table>
+<div class="metric-strip">
 
-    <thead>
+    <div class="metric-box">
 
-        <tr>
-            <th>Student</th>
-            <th>Admission No.</th>
-            <th>Class</th>
-            <th>Outstanding</th>
-            <th></th>
-        </tr>
+        <span>
+            Total Outstanding
+        </span>
 
-    </thead>
+        <strong>
 
-    <tbody>
+            {{ portal_theme.currency_code }}
 
-        {% for row in debtors %}
+            {{ total_outstanding|floatformat:2|intcomma }}
 
-            <tr>
+        </strong>
 
-                <td>
-                    {{ row.enrollment.student.full_name }}
-                </td>
+        <small>
+            Combined outstanding student balances
+        </small>
 
-                <td>
-                    {{ row.enrollment.student.admission_number }}
-                </td>
+    </div>
 
-                <td>
-                    {{ row.enrollment.class_section }}
-                </td>
 
-                <td>
-                    GH₵{{ row.balance }}
-                </td>
+    <div class="metric-box">
 
-                <td>
+        <span>
+            Debtor Accounts
+        </span>
 
-                    <a
-                        href="{% url 'portal:finance-student-statement' row.enrollment.id %}"
-                    >
-                        Statement
-                    </a>
+        <strong>
+            {{ debtors|length }}
+        </strong>
 
-                </td>
+        <small>
+            Students with positive balances
+        </small>
 
-            </tr>
+    </div>
 
-        {% empty %}
+</div>
 
-            <tr>
 
-                <td colspan="5">
-                    No outstanding balances.
-                </td>
+<section class="table-card">
 
-            </tr>
+    <div class="table-scroll">
 
-        {% endfor %}
+        <table class="data-table">
 
-    </tbody>
+            <thead>
 
-</table>
+                <tr>
+                    <th>Student</th>
+                    <th>Admission Number</th>
+                    <th>Class</th>
+                    <th>Outstanding</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for row in debtors %}
+
+                    <tr>
+
+                        <td>
+
+                            <div class="table-person">
+
+                                <div class="table-avatar">
+
+                                    {{ row.enrollment.student.first_name|first|upper }}
+
+                                    {{ row.enrollment.student.last_name|first|upper }}
+
+                                </div>
+
+                                <div class="table-person-copy">
+
+                                    <strong>
+                                        {{ row.enrollment.student.full_name }}
+                                    </strong>
+
+                                    <span>
+                                        Outstanding balance
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+                            {{ row.enrollment.student.admission_number }}
+                        </td>
+
+                        <td>
+                            {{ row.enrollment.class_section }}
+                        </td>
+
+                        <td>
+
+                            <strong>
+
+                                {{ portal_theme.currency_code }}
+
+                                {{ row.balance|floatformat:2|intcomma }}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                class="table-link"
+                                href="{% url 'portal:finance-student-statement' row.enrollment.id %}"
+                            >
+                                View Statement
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+                                There are no outstanding balances.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

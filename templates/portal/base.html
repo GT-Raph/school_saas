@@ -1,6 +1,10 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -8,299 +12,579 @@
         content="width=device-width, initial-scale=1"
     >
 
+    <meta
+        name="theme-color"
+        content="{{ portal_theme.primary_color }}"
+    >
+
     <title>
         {% block title %}
-            School Portal
+            Dashboard
         {% endblock %}
+        ·
+        {{ portal_theme.school_name }}
     </title>
 
+    <link
+        rel="stylesheet"
+        href="{% static 'portal/css/portal.css' %}"
+    >
+
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        :root {
+            --brand-primary:
+                {{ portal_theme.primary_color }};
 
-        body {
-            margin: 0;
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-            background: #f5f7fa;
-            color: #1f2937;
-        }
+            --brand-secondary:
+                {{ portal_theme.secondary_color }};
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #111827;
-            color: white;
-            padding: 24px;
-        }
-
-        .school-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 11px 0;
-            color: #d1d5db;
-            text-decoration: none;
-        }
-
-        .sidebar a:hover {
-            color: white;
-        }
-
-        .main {
-            flex: 1;
-        }
-
-        .topbar {
-            height: 70px;
-            background: white;
-            border-bottom:
-                1px solid #e5e7eb;
-
-            display: flex;
-            align-items: center;
-            justify-content:
-                space-between;
-
-            padding: 0 30px;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .cards {
-            display: grid;
-
-            grid-template-columns:
-                repeat(
-                    auto-fit,
-                    minmax(
-                        220px,
-                        1fr
-                    )
-                );
-
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            padding: 24px;
-            border-radius: 10px;
-
-            box-shadow:
-                0 1px 3px
-                rgba(
-                    0,
-                    0,
-                    0,
-                    0.08
-                );
-        }
-
-        .card .number {
-            font-size: 28px;
-            font-weight: bold;
-            margin-top: 8px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        th,
-        td {
-            text-align: left;
-            padding: 12px;
-
-            border-bottom:
-                1px solid #e5e7eb;
-        }
-
-        th {
-            background: #f9fafb;
-        }
-
-        .logout {
-            color: #b91c1c;
-            text-decoration: none;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            max-width: 600px;
-            padding: 10px 12px;
-
-            border:
-                1px solid #d1d5db;
-
-            border-radius: 6px;
-
-            font-size: 14px;
-        }
-
-        input[type="checkbox"] {
-            width: auto;
-        }
-
-        .button {
-            display: inline-block;
-
-            padding: 10px 16px;
-
-            background: #111827;
-            color: white;
-
-            text-decoration: none;
-
-            border-radius: 6px;
-
-            margin-right: 8px;
-        }
-
-        .button-secondary {
-            background: #4b5563;
+            --brand-accent:
+                {{ portal_theme.accent_color }};
         }
     </style>
+
+    {% block extra_head %}
+    {% endblock %}
+
 </head>
+
 
 <body>
 
-<div class="layout">
+<div
+    class="mobile-overlay"
+    id="mobileOverlay"
+></div>
 
-    <aside class="sidebar">
 
-        <div class="school-name">
+<div class="portal-shell">
 
-            {% if request.school %}
-                {{ request.school.name }}
+    <aside
+        class="sidebar"
+        id="portalSidebar"
+    >
+
+        <div class="brand">
+
+            {% if portal_theme.logo_url %}
+
+                <img
+                    class="brand-logo"
+                    src="{{ portal_theme.logo_url }}"
+                    alt="{{ portal_theme.school_name }}"
+                >
+
             {% else %}
-                School Platform
+
+                <div class="brand-mark">
+                    {{ portal_theme.school_name|first|upper }}
+                </div>
+
             {% endif %}
+
+
+            <div class="brand-copy">
+
+                <strong>
+                    {{ portal_theme.school_name }}
+                </strong>
+
+                <span>
+                    {{ portal_theme.motto }}
+                </span>
+
+            </div>
 
         </div>
 
-        <a href="{% url 'portal:home' %}">
-            Dashboard
-        </a>
+
+        <nav class="sidebar-nav">
+
+            <div class="nav-section-label">
+                Overview
+            </div>
 
 
-        {% if portal_access.teacher %}
+            <a
+                href="{% url 'portal:home' %}"
+                class="
+                    nav-link
+                    {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'school-admin' or request.resolver_match.url_name == 'academic' or request.resolver_match.url_name == 'finance' or request.resolver_match.url_name == 'teacher' or request.resolver_match.url_name == 'parent' or request.resolver_match.url_name == 'student' %}
+                        active
+                    {% endif %}
+                "
+            >
 
-            <a href="{% url 'portal:teacher-classes' %}">
-                My Classes
+                <span class="nav-icon">
+                    DB
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
             </a>
 
-        {% endif %}
+
+            {% if portal_access.teacher %}
+
+                <div class="nav-section-label">
+                    Teaching
+                </div>
+
+                <a
+                    href="{% url 'portal:teacher-classes' %}"
+                    class="
+                        nav-link
+                        {% if 'teacher-class' in request.resolver_match.url_name or request.resolver_match.url_name == 'teacher-classes' %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        CL
+                    </span>
+
+                    <span>
+                        My Classes
+                    </span>
+
+                </a>
+
+            {% endif %}
 
 
-        {% if portal_access.students %}
+            {% if portal_access.students or portal_access.guardians or portal_access.staff %}
 
-            <a href="{% url 'portal:student-list' %}">
-                Students
-            </a>
+                <div class="nav-section-label">
+                    People
+                </div>
 
-        {% endif %}
-
-
-        {% if portal_access.guardians %}
-
-            <a href="{% url 'portal:guardian-list' %}">
-                Parents & Guardians
-            </a>
-
-        {% endif %}
+            {% endif %}
 
 
-        {% if portal_access.staff %}
+            {% if portal_access.students %}
 
-            <a href="{% url 'portal:staff-list' %}">
-                Staff
-            </a>
+                <a
+                    href="{% url 'portal:student-list' %}"
+                    class="
+                        nav-link
+                        {% if 'student-' in request.resolver_match.url_name and request.resolver_match.url_name != 'student-self-service' %}
+                            active
+                        {% endif %}
+                    "
+                >
 
-        {% endif %}
+                    <span class="nav-icon">
+                        ST
+                    </span>
 
-        {% if portal_access.academic %}
+                    <span>
+                        Students
+                    </span>
 
-            <a href="{% url 'portal:academic-results-queue' %}">
-                Academic Management
-            </a>
+                </a>
 
-            <a href="{% url 'portal:academic-term-results-home' %}">
-                Term Results
-            </a>
-
-            <a href="{% url 'portal:promotion-dashboard' %}">
-                Promotions
-            </a>
-
-        {% endif %}
-        
-
-        {% if portal_access.users %}
-
-            <a href="{% url 'portal:school-user-list' %}">
-                User Accounts
-            </a>
-
-        {% endif %}
+            {% endif %}
 
 
-        {% if portal_access.finance %}
+            {% if portal_access.guardians %}
 
-            <a href="{% url 'portal:finance-student-accounts' %}">
-                Finance
-            </a>
+                <a
+                    href="{% url 'portal:guardian-list' %}"
+                    class="
+                        nav-link
+                        {% if 'guardian-' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
 
-        {% endif %}
+                    <span class="nav-icon">
+                        PG
+                    </span>
+
+                    <span>
+                        Parents & Guardians
+                    </span>
+
+                </a>
+
+            {% endif %}
 
 
-        {% if portal_access.settings %}
+            {% if portal_access.staff %}
 
-            <a href="{% url 'portal:admin-studio' %}">
-                Settings
-            </a>
+                <a
+                    href="{% url 'portal:staff-list' %}"
+                    class="
+                        nav-link
+                        {% if 'staff-' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
 
-        {% endif %}
+                    <span class="nav-icon">
+                        SF
+                    </span>
+
+                    <span>
+                        Staff
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.academic %}
+
+                <div class="nav-section-label">
+                    Academics
+                </div>
+
+                <a
+                    href="{% url 'portal:academic-results-queue' %}"
+                    class="
+                        nav-link
+                        {% if request.resolver_match.url_name == 'academic-results-queue' or request.resolver_match.url_name == 'academic-approve-result' %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        RS
+                    </span>
+
+                    <span>
+                        Results
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="{% url 'portal:academic-term-results-home' %}"
+                    class="
+                        nav-link
+                        {% if 'academic-term-result' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        TR
+                    </span>
+
+                    <span>
+                        Term Results
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.promotions %}
+
+                <a
+                    href="{% url 'portal:promotion-dashboard' %}"
+                    class="
+                        nav-link
+                        {% if 'promotion-' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        PR
+                    </span>
+
+                    <span>
+                        Promotions
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.finance %}
+
+                <div class="nav-section-label">
+                    Finance
+                </div>
+
+                <a
+                    href="{% url 'portal:finance-student-accounts' %}"
+                    class="
+                        nav-link
+                        {% if 'finance-' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        FN
+                    </span>
+
+                    <span>
+                        Finance
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.parent %}
+
+                <div class="nav-section-label">
+                    Family Portal
+                </div>
+
+                <a
+                    href="{% url 'portal:parent' %}"
+                    class="nav-link"
+                >
+
+                    <span class="nav-icon">
+                        CH
+                    </span>
+
+                    <span>
+                        My Children
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.student %}
+
+                <div class="nav-section-label">
+                    Student Portal
+                </div>
+
+                <a
+                    href="{% url 'portal:student-self-service' %}"
+                    class="nav-link"
+                >
+
+                    <span class="nav-icon">
+                        MR
+                    </span>
+
+                    <span>
+                        My Records
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.users or portal_access.settings %}
+
+                <div class="nav-section-label">
+                    Administration
+                </div>
+
+            {% endif %}
+
+
+            {% if portal_access.users %}
+
+                <a
+                    href="{% url 'portal:school-user-list' %}"
+                    class="
+                        nav-link
+                        {% if 'school-user-' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        UA
+                    </span>
+
+                    <span>
+                        User Accounts
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+
+            {% if portal_access.settings %}
+
+                <a
+                    href="{% url 'portal:admin-studio' %}"
+                    class="
+                        nav-link
+                        {% if request.resolver_match.url_name == 'admin-studio' or 'school-profile' in request.resolver_match.url_name or 'school-branding' in request.resolver_match.url_name %}
+                            active
+                        {% endif %}
+                    "
+                >
+
+                    <span class="nav-icon">
+                        SE
+                    </span>
+
+                    <span>
+                        Settings
+                    </span>
+
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+
+        <div class="sidebar-footer">
+
+            <div class="sidebar-user-avatar">
+                {{ request.user.first_name|first|default:request.user.username|first|upper }}
+            </div>
+
+            <div class="sidebar-user-copy">
+
+                <strong>
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </strong>
+
+                <span>
+                    Signed in
+                </span>
+
+            </div>
+
+        </div>
 
     </aside>
 
 
-    <main class="main">
+    <main class="main-shell">
 
         <header class="topbar">
 
-            <div>
-                {% block heading %}
-                    Dashboard
-                {% endblock %}
-            </div>
+            <button
+                type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Open navigation"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
 
-            <div>
 
-                {{ request.user.get_full_name|default:request.user.username }}
+            {% if portal_access.students %}
 
-                &nbsp;&nbsp;
+                <form
+                    class="top-search"
+                    method="get"
+                    action="{% url 'portal:student-list' %}"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <circle
+                            cx="11"
+                            cy="11"
+                            r="7"
+                        ></circle>
+
+                        <path
+                            d="M20 20l-3.5-3.5"
+                        ></path>
+                    </svg>
+
+                    <input
+                        type="search"
+                        name="q"
+                        placeholder="Search students..."
+                        value="{{ request.GET.q }}"
+                    >
+
+                </form>
+
+            {% else %}
+
+                <div class="topbar-title">
+
+                    {% block mobile_title %}
+                        School Portal
+                    {% endblock %}
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="topbar-actions">
+
+                <button
+                    class="topbar-icon-button"
+                    type="button"
+                    aria-label="Notifications"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M18 8a6 6 0 10-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                        ></path>
+
+                        <path
+                            d="M10 21h4"
+                        ></path>
+                    </svg>
+
+                    <span class="notification-dot"></span>
+
+                </button>
+
+
+                <div class="topbar-profile">
+
+                    <div class="profile-avatar">
+                        {{ request.user.first_name|first|default:request.user.username|first|upper }}
+                    </div>
+
+                    <div class="profile-copy">
+
+                        <strong>
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </strong>
+
+                        <span>
+                            {{ portal_theme.school_name }}
+                        </span>
+
+                    </div>
+
+                </div>
+
 
                 <a
-                    class="logout"
+                    class="logout-link"
                     href="{% url 'accounts:logout' %}"
                 >
                     Logout
@@ -311,27 +595,33 @@
         </header>
 
 
-        <section class="content">
+        <section class="portal-content">
 
             {% if messages %}
 
-                {% for message in messages %}
+                <div class="message-stack">
 
-                    <div
-                        style="
-                            padding: 12px 16px;
-                            margin-bottom: 16px;
-                            background: white;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        "
-                    >
-                        {{ message }}
-                    </div>
+                    {% for message in messages %}
 
-                {% endfor %}
+                        <div
+                            class="
+                                portal-message
+                                portal-message-{{ message.tags|default:'info' }}
+                            "
+                        >
+
+                            <span>
+                                {{ message }}
+                            </span>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
 
             {% endif %}
+
 
             {% block content %}
             {% endblock %}
@@ -342,5 +632,14 @@
 
 </div>
 
+
+<script
+    src="{% static 'portal/js/portal.js' %}"
+></script>
+
+{% block extra_scripts %}
+{% endblock %}
+
 </body>
+
 </html>

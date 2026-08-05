@@ -1,47 +1,86 @@
+import re
+
+from django.core.exceptions import ObjectDoesNotExist
+
 from apps.schools.permissions import (
     get_school_permissions,
     has_role,
 )
 
 
+HEX_COLOR_PATTERN = re.compile(
+    r"^#[0-9A-Fa-f]{6}$"
+)
+
+
+def safe_color(
+    value,
+    fallback,
+):
+    value = str(
+        value or ""
+    ).strip()
+
+    if HEX_COLOR_PATTERN.fullmatch(
+        value
+    ):
+        return value
+
+    return fallback
+
+
 def portal_access(
     request,
 ):
-    if (
-        not hasattr(
-            request,
-            "school",
-        )
-        or not request.school
-        or not request.user
-        .is_authenticated
-    ):
-        return {}
+    school = getattr(
+        request,
+        "school",
+        None,
+    )
 
-    permissions = (
-        get_school_permissions(
-            user=request.user,
-            school=request.school,
-        )
+    user = getattr(
+        request,
+        "user",
+        None,
+    )
+
+    if (
+        not school
+        or not user
+        or not user.is_authenticated
+    ):
+        return {
+            "portal_access": {},
+        }
+
+    permissions = get_school_permissions(
+        user=user,
+        school=school,
+    )
+
+    unrestricted = (
+        user.is_superuser
+        or user.is_platform_admin
     )
 
     def allowed(
         permission,
     ):
-        if (
-            request.user.is_superuser
-            or request.user
-            .is_platform_admin
-        ):
-            return True
-
         return (
-            permission
-            in permissions
+            unrestricted
+            or permission in permissions
         )
 
     return {
         "portal_access": {
+            "school_admin": (
+                unrestricted
+                or has_role(
+                    user=user,
+                    school=school,
+                    role_code="school-admin",
+                )
+            ),
 
             "academic": (
                 allowed(
@@ -52,44 +91,148 @@ def portal_access(
                 )
             ),
 
-            "users":
-                allowed(
-                    "schools.manage_school_users"
-                ),
+            "teacher": has_role(
+                user=user,
+                school=school,
+                role_code="teacher",
+            ),
 
-            "students":
-                allowed(
-                    "students.view_student"
-                ),
+            "finance": allowed(
+                "finance.view_studentinvoice"
+            ),
 
-            "guardians":
-                allowed(
-                    "guardians.view_guardian"
-                ),
+            "parent": has_role(
+                user=user,
+                school=school,
+                role_code="parent",
+            ),
 
-            "staff":
-                allowed(
-                    "staff.view_staff"
-                ),
+            "student": has_role(
+                user=user,
+                school=school,
+                role_code="student",
+            ),
 
-            "finance":
-                allowed(
-                    "finance.view_studentinvoice"
-                ),
+            "students": allowed(
+                "students.view_student"
+            ),
 
-            "teacher":
-                has_role(
-                    user=request.user,
-                    school=request.school,
-                    role_code="teacher",
-                ),
+            "students_add": allowed(
+                "students.add_student"
+            ),
 
-            "settings":
-                allowed(
-                    (
-                        "schools."
-                        "manage_school_settings"
-                    )
+            "guardians": allowed(
+                "guardians.view_guardian"
+            ),
+
+            "guardians_add": allowed(
+                "guardians.add_guardian"
+            ),
+
+            "staff": allowed(
+                "staff.view_staff"
+            ),
+
+            "staff_add": allowed(
+                "staff.add_staff"
+            ),
+
+            "users": allowed(
+                "schools.manage_school_users"
+            ),
+
+            "settings": allowed(
+                "schools.manage_school_settings"
+            ),
+
+            "promotions": allowed(
+                "promotions.view_promotionevaluation"
+            ),
+        },
+    }
+
+
+def portal_theme(
+    request,
+):
+    school = getattr(
+        request,
+        "school",
+        None,
+    )
+
+    branding = None
+
+    if school:
+
+        try:
+            branding = school.branding
+
+        except (
+            AttributeError,
+            ObjectDoesNotExist,
+        ):
+            branding = None
+
+    school_name = (
+        school.name
+        if school
+        else "School Portal"
+    )
+
+    currency_code = (
+        getattr(
+            school,
+            "currency",
+            "",
+        )
+        or "GHS"
+    )
+
+    return {
+        "portal_theme": {
+            "school_name": school_name,
+
+            "motto": (
+                branding.motto
+                if branding
+                and branding.motto
+                else "School Management Portal"
+            ),
+
+            "logo_url": (
+                branding.logo_url
+                if branding
+                else ""
+            ),
+
+            "primary_color": safe_color(
+                (
+                    branding.primary_color
+                    if branding
+                    else None
                 ),
-        }
+                "#7C3AED",
+            ),
+
+            "secondary_color": safe_color(
+                (
+                    branding.secondary_color
+                    if branding
+                    else None
+                ),
+                "#FFFFFF",
+            ),
+
+            "accent_color": safe_color(
+                (
+                    branding.accent_color
+                    if branding
+                    else None
+                ),
+                "#8B5CF6",
+            ),
+
+            "currency_code": currency_code,
+        },
     }

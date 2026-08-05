@@ -3,7 +3,10 @@ from decimal import Decimal
 from django.core.exceptions import (
     PermissionDenied,
 )
-from django.db.models import Sum
+from django.db.models import (
+    Count,
+    Sum
+)
 from django.shortcuts import (
     redirect,
     render,
@@ -24,6 +27,10 @@ from apps.finance.models import (
 from apps.guardians.models import (
     Guardian,
 )
+
+from apps.staff.models import Staff
+from apps.students.models import Student
+
 from apps.schools.permissions import (
     has_role,
 )
@@ -84,8 +91,7 @@ def school_admin_dashboard(
 ):
     if (
         not request.user.is_superuser
-        and not request.user
-        .is_platform_admin
+        and not request.user.is_platform_admin
         and not has_role(
             user=request.user,
             school=request.school,
@@ -96,34 +102,239 @@ def school_admin_dashboard(
 
     school = request.school
 
+    active_students = (
+        Student.objects
+        .for_school(school)
+        .filter(
+            status=Student.Status.ACTIVE
+        )
+    )
+
+    student_count = (
+        active_students.count()
+    )
+
+    teacher_count = (
+        Staff.objects
+        .for_school(school)
+        .filter(
+            is_teacher=True,
+            employment_status=(
+                Staff
+                .EmploymentStatus.ACTIVE
+            ),
+        )
+        .count()
+    )
+
+    guardian_count = (
+        Guardian.objects
+        .for_school(school)
+        .filter(
+            is_active=True
+        )
+        .count()
+    )
+
+    ledger_totals = (
+        LedgerEntry.objects
+        .for_school(school)
+        .aggregate(
+            debit=Sum("debit"),
+            credit=Sum("credit"),
+        )
+    )
+
+    total_debit = (
+        ledger_totals["debit"]
+        or Decimal("0")
+    )
+
+    total_credit = (
+        ledger_totals["credit"]
+        or Decimal("0")
+    )
+
+    outstanding = (
+        total_debit
+        - total_credit
+    )
+
+    class_rows = list(
+        Enrollment.objects
+        .for_school(school)
+        .filter(
+            status=Enrollment.Status.ACTIVE
+        )
+        .values(
+            "class_section__level__name",
+            "class_section__name",
+        )
+        .annotate(
+            total=Count(
+                "student_id",
+                distinct=True,
+            )
+        )
+        .order_by(
+            "class_section__level__order",
+            "class_section__name",
+        )
+    )
+
+    largest_class = max(
+        (
+            row["total"]
+            for row
+            in class_rows
+        ),
+        default=1,
+    )
+
+    class_chart = [
+        {
+            "label": (
+                f"{row['class_section__level__name']} "
+                f"{row['class_section__name']}"
+            ),
+
+            "total": row["total"],
+
+            "percent": round(
+                (
+                    row["total"]
+                    / largest_class
+                )
+                * 100,
+                2,
+            ),
+        }
+        for row
+        in class_rows
+    ]
+
+    gender_rows = (
+        active_students
+        .values(
+            "gender"
+        )
+        .annotate(
+            total=Count("id")
+        )
+    )
+
+    gender_counts = {
+        row["gender"]:
+            row["total"]
+        for row
+        in gender_rows
+    }
+
+    male_count = gender_counts.get(
+        Student.Gender.MALE,
+        0,
+    )
+
+    female_count = gender_counts.get(
+        Student.Gender.FEMALE,
+        0,
+    )
+
+    other_count = max(
+        student_count
+        - male_count
+        - female_count,
+        0,
+    )
+
+    gender_total = max(
+        student_count,
+        1,
+    )
+
+    gender_summary = {
+        "male": male_count,
+
+        "female": female_count,
+
+        "other": other_count,
+
+        "male_percent": round(
+            male_count
+            / gender_total
+            * 100,
+            2,
+        ),
+
+        "female_percent": round(
+            female_count
+            / gender_total
+            * 100,
+            2,
+        ),
+
+        "other_percent": round(
+            other_count
+            / gender_total
+            * 100,
+            2,
+        ),
+    }
+
+    recent_students = (
+        Student.objects
+        .for_school(school)
+        .order_by(
+            "-created_at"
+        )[:5]
+    )
+
+    recent_payments = (
+        Payment.objects
+        .for_school(school)
+        .filter(
+            status=(
+                Payment.Status.CONFIRMED
+            )
+        )
+        .select_related(
+            "enrollment__student"
+        )
+        .order_by(
+            "-paid_at"
+        )[:5]
+    )
+
     context = {
-        "student_count": (
-            Student.objects
-            .for_school(school)
-            .filter(
-                status=(
-                    Student.Status.ACTIVE
-                )
-            )
-            .count()
-        ),
+        "student_count":
+            student_count,
 
-        "active_enrollments": (
-            Enrollment.objects
-            .for_school(school)
-            .filter(
-                status=(
-                    Enrollment.Status.ACTIVE
-                )
-            )
-            .count()
-        ),
+        "teacher_count":
+            teacher_count,
 
-        "invoice_count": (
-            StudentInvoice.objects
-            .for_school(school)
-            .count()
-        ),
+        "guardian_count":
+            guardian_count,
+
+        "outstanding":
+            outstanding,
+
+        "total_debit":
+            total_debit,
+
+        "total_credit":
+            total_credit,
+
+        "class_chart":
+            class_chart,
+
+        "gender_summary":
+            gender_summary,
+
+        "recent_students":
+            recent_students,
+
+        "recent_payments":
+            recent_payments,
     }
 
     return render(

@@ -6,156 +6,376 @@ Students
 {% endblock %}
 
 
-{% block heading %}
-Student Management
+{% block mobile_title %}
+Students
 {% endblock %}
 
 
 {% block content %}
 
-<div
-    style="
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    "
->
+<div class="page-header">
 
-    <div>
+    <div class="page-heading">
 
         <h1>
-            Students
+            Students List
         </h1>
+
+        <p>
+            Manage admissions, enrollment and student records.
+        </p>
 
     </div>
 
-    <div>
 
-        <a
-            class="button"
-            href="{% url 'portal:student-admit' %}"
-        >
-            + Admit Student
-        </a>
+    <div class="page-actions">
 
-        <a
-            class="button button-secondary"
-            href="{% url 'portal:student-import' %}"
-        >
-            Bulk Import
-        </a>
+        {% if portal_access.students_add %}
+
+            <a
+                class="button button-secondary"
+                href="{% url 'portal:student-import' %}"
+            >
+                Bulk Import
+            </a>
+
+
+            <a
+                class="button"
+                href="{% url 'portal:student-admit' %}"
+            >
+                + Add Student
+            </a>
+
+        {% endif %}
 
     </div>
 
 </div>
 
 
-<form
-    method="get"
-    style="
-        margin-bottom: 20px;
-    "
->
+<section class="table-card">
 
-    <input
-        type="text"
-        name="q"
-        value="{{ query }}"
-        placeholder="Search name or admission number"
-        style="
-            max-width: 400px;
-        "
-    >
+    <div class="table-toolbar">
 
-    <button
-        class="button"
-        type="submit"
-    >
-        Search
-    </button>
+        <div class="panel-title">
 
-</form>
+            <h2>
+                Students Information
+            </h2>
+
+            <p>
+                {{ page_obj.paginator.count }}
+                student record{{ page_obj.paginator.count|pluralize }}
+            </p>
+
+        </div>
 
 
-<table>
+        <form
+            class="filter-form"
+            method="get"
+        >
 
-    <thead>
-
-        <tr>
-
-            <th>
-                Admission No.
-            </th>
-
-            <th>
-                Student
-            </th>
-
-            <th>
-                Gender
-            </th>
-
-            <th>
-                Status
-            </th>
-
-            <th>
-                Action
-            </th>
-
-        </tr>
-
-    </thead>
+            <input
+                class="field-control"
+                type="search"
+                name="q"
+                value="{{ query }}"
+                placeholder="Search name or admission number"
+            >
 
 
-    <tbody>
+            <select
+                class="field-control"
+                name="class_section"
+            >
 
-        {% for student in students %}
+                <option value="">
+                    All classes
+                </option>
 
-            <tr>
+                {% for section in class_sections %}
 
-                <td>
-                    {{ student.admission_number }}
-                </td>
+                    <option
+                        value="{{ section.id }}"
+                        {% if selected_class_section == section.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ section }}
+                    </option>
 
-                <td>
-                    {{ student.full_name }}
-                </td>
+                {% endfor %}
 
-                <td>
-                    {{ student.get_gender_display }}
-                </td>
+            </select>
 
-                <td>
-                    {{ student.get_status_display }}
-                </td>
 
-                <td>
+            <select
+                class="field-control"
+                name="status"
+            >
+
+                <option value="">
+                    All statuses
+                </option>
+
+                {% for value, label in status_choices %}
+
+                    <option
+                        value="{{ value }}"
+                        {% if selected_status == value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <button
+                class="button"
+                type="submit"
+            >
+                Filter
+            </button>
+
+
+            {% if query or selected_status or selected_class_section %}
+
+                <a
+                    class="button button-muted"
+                    href="{% url 'portal:student-list' %}"
+                >
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <div class="table-scroll">
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+                    <th>Student</th>
+                    <th>Admission No.</th>
+                    <th>Class</th>
+                    <th>Gender</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for student in students %}
+
+                    <tr>
+
+                        <td>
+
+                            <div class="table-person">
+
+                                <div class="table-avatar">
+
+                                    {{ student.first_name|first|upper }}
+
+                                    {{ student.last_name|first|upper }}
+
+                                </div>
+
+
+                                <div class="table-person-copy">
+
+                                    <strong>
+                                        {{ student.full_name }}
+                                    </strong>
+
+                                    <span>
+
+                                        {% if student.email %}
+
+                                            {{ student.email }}
+
+                                        {% else %}
+
+                                            Student profile
+
+                                        {% endif %}
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+                            {{ student.admission_number }}
+                        </td>
+
+
+                        <td>
+
+                            {% with current=student.current_enrollments.0 %}
+
+                                {% if current %}
+
+                                    {{ current.class_section }}
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            {% endwith %}
+
+                        </td>
+
+
+                        <td>
+                            {{ student.get_gender_display }}
+                        </td>
+
+
+                        <td>
+                            {{ student.phone_number|default:"—" }}
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="
+                                    status-badge
+                                    status-{{ student.status }}
+                                "
+                            >
+                                {{ student.get_status_display }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <a
+                                class="table-link"
+                                href="{% url 'portal:student-detail' student.id %}"
+                            >
+                                View Profile
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="7">
+
+                            <div class="empty-state">
+
+                                No students matched the selected filters.
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% if page_obj.paginator.num_pages > 1 %}
+
+        <nav class="pagination">
+
+            {% if page_obj.has_previous %}
+
+                <a
+                    href="
+                        ?page={{ page_obj.previous_page_number }}
+                        &q={{ query|urlencode }}
+                        &status={{ selected_status|urlencode }}
+                        &class_section={{ selected_class_section|urlencode }}
+                    "
+                >
+                    ‹
+                </a>
+
+            {% endif %}
+
+
+            {% for page_number in page_obj.paginator.page_range %}
+
+                {% if page_number == page_obj.number %}
+
+                    <span class="current">
+                        {{ page_number }}
+                    </span>
+
+                {% elif page_number >= page_obj.number|add:"-2" and page_number <= page_obj.number|add:"2" %}
 
                     <a
-                        href="{% url 'portal:student-detail' student.id %}"
+                        href="
+                            ?page={{ page_number }}
+                            &q={{ query|urlencode }}
+                            &status={{ selected_status|urlencode }}
+                            &class_section={{ selected_class_section|urlencode }}
+                        "
                     >
-                        View
+                        {{ page_number }}
                     </a>
 
-                </td>
+                {% endif %}
 
-            </tr>
+            {% endfor %}
 
-        {% empty %}
 
-            <tr>
+            {% if page_obj.has_next %}
 
-                <td colspan="5">
-                    No students found.
-                </td>
+                <a
+                    href="
+                        ?page={{ page_obj.next_page_number }}
+                        &q={{ query|urlencode }}
+                        &status={{ selected_status|urlencode }}
+                        &class_section={{ selected_class_section|urlencode }}
+                    "
+                >
+                    ›
+                </a>
 
-            </tr>
+            {% endif %}
 
-        {% endfor %}
+        </nav>
 
-    </tbody>
+    {% endif %}
 
-</table>
+</section>
 
 {% endblock %}
