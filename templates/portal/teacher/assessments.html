@@ -1,109 +1,235 @@
 {% extends "portal/base.html" %}
 
-{% block heading %}
+
+{% block title %}
 Assessments
 {% endblock %}
 
+
+{% block mobile_title %}
+Assessments
+{% endblock %}
+
+
 {% block content %}
 
-<h1>
-    {{ offering.subject.name }}
-</h1>
+<div class="page-header">
 
-<p>
-    {{ offering.class_section }}
-    ·
-    {{ plan.term.name }}
-</p>
+    <div class="page-heading">
+
+        <h1>
+            Assessments
+        </h1>
+
+        <p>
+            {{ offering.subject.name }}
+            ·
+            {{ offering.class_section }}
+            ·
+            {{ plan.term.name }}
+        </p>
 
 
-<table>
+        <div class="inline-metadata">
 
-    <thead>
-        <tr>
-            <th>Assessment</th>
-            <th>Category</th>
-            <th>Maximum</th>
-            <th>Status</th>
-            <th>Marks</th>
-        </tr>
-    </thead>
+            <span class="metadata-pill">
+                {{ plan.scheme.name }}
+            </span>
 
-    <tbody>
+            <span class="metadata-pill">
+                {{ plan.grade_scale.name }}
+            </span>
 
-        {% for assessment in assessments %}
+        </div>
 
-            <tr>
+    </div>
 
-                <td>
-                    {{ assessment.name }}
-                </td>
 
-                <td>
-                    {{ assessment.category.name }}
-                </td>
+    <div class="page-actions">
 
-                <td>
-                    {{ assessment.max_score }}
-                </td>
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:teacher-class-detail' offering.id %}"
+        >
+            Back to Class
+        </a>
 
-                <td>
-                    {{ assessment.get_status_display }}
-                </td>
+    </div>
 
-                <td>
+</div>
 
-                    {% if assessment.status != "locked" %}
 
-                        <a
-                            href="{% url 'portal:teacher-enter-scores' assessment.id %}"
-                        >
-                            Enter Marks
-                        </a>
+<section class="table-card">
 
-                    {% else %}
+    <div class="table-toolbar">
 
-                        Locked
+        <div class="panel-title">
 
-                    {% endif %}
+            <h2>
+                Assessment Items
+            </h2>
 
-                </td>
+            <p>
+                Enter and review student marks.
+            </p>
 
-            </tr>
+        </div>
 
-        {% empty %}
+    </div>
 
-            <tr>
-                <td colspan="5">
-                    No assessments configured.
-                </td>
-            </tr>
 
-        {% endfor %}
+    <div class="table-scroll">
 
-    </tbody>
+        <table class="data-table">
 
-</table>
+            <thead>
+
+                <tr>
+                    <th>Assessment</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Maximum Score</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for assessment in assessments %}
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                {{ assessment.name }}
+                            </strong>
+
+                        </td>
+
+                        <td>
+                            {{ assessment.category.name }}
+                        </td>
+
+                        <td>
+                            {{ assessment.assessment_date|date:"d M Y" }}
+                        </td>
+
+                        <td>
+                            {{ assessment.max_score }}
+                        </td>
+
+                        <td>
+
+                            <span
+                                class="
+                                    status-badge
+                                    status-{{ assessment.status }}
+                                "
+                            >
+                                {{ assessment.get_status_display }}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            {% if assessment.status != "locked" %}
+
+                                <a
+                                    class="table-link"
+                                    href="{% url 'portal:teacher-enter-scores' assessment.id %}"
+                                >
+                                    Enter Marks
+                                </a>
+
+                            {% else %}
+
+                                Locked
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="6">
+
+                            <div class="empty-state">
+                                No assessments are configured for this term.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 
 {% if assessments %}
 
-    <form
-        method="post"
-        action="{% url 'portal:teacher-calculate-submit-results' plan.id %}"
-        style="margin-top: 25px;"
-    >
+    <div class="panel" style="margin-top: 18px;">
 
-        {% csrf_token %}
+        <div class="panel-header">
 
-        <button
-            class="button"
-            type="submit"
+            <div class="panel-title">
+
+                <h2>
+                    Submit Subject Results
+                </h2>
+
+                <p>
+                    Calculate weighted subject results and submit them for approval.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="notice-box notice-warning">
+
+            Make sure every required assessment contains a score or an
+            absent mark for every active student before submitting.
+
+        </div>
+
+
+        <form
+            method="post"
+            action="{% url 'portal:teacher-calculate-submit-results' plan.id %}"
         >
-            Calculate & Submit Results
-        </button>
 
-    </form>
+            {% csrf_token %}
+
+            <div class="form-actions">
+
+                <button
+                    class="button"
+                    type="submit"
+                >
+                    Calculate & Submit Results
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
 
 {% endif %}
 

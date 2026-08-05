@@ -1,36 +1,48 @@
 {% extends "portal/base.html" %}
+{% load humanize %}
 
-{% block heading %}
+
+{% block title %}
 Student Accounts
 {% endblock %}
 
+
+{% block mobile_title %}
+Student Accounts
+{% endblock %}
+
+
 {% block content %}
 
-<div
-    style="
-        display: flex;
-        justify-content: space-between;
-    "
->
+<div class="page-header">
 
-    <h1>
-        Student Accounts
-    </h1>
+    <div class="page-heading">
 
-    <div>
+        <h1>
+            Student Accounts
+        </h1>
 
-        <a
-            class="button"
-            href="{% url 'portal:finance-record-payment' %}"
-        >
-            Record Payment
-        </a>
+        <p>
+            Review student balances and financial statements.
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
 
         <a
             class="button button-secondary"
             href="{% url 'portal:finance-debtors' %}"
         >
-            Debtors
+            Debtors Report
+        </a>
+
+        <a
+            class="button"
+            href="{% url 'portal:finance-record-payment' %}"
+        >
+            + Record Payment
         </a>
 
     </div>
@@ -38,71 +50,164 @@ Student Accounts
 </div>
 
 
-<form method="get">
+<section class="table-card">
 
-    <input
-        name="q"
-        value="{{ query }}"
-        placeholder="Search student"
-    >
+    <div class="table-toolbar">
 
-    <button class="button">
-        Search
-    </button>
+        <div class="panel-title">
 
-</form>
+            <h2>
+                Account Register
+            </h2>
+
+            <p>
+                Current active student accounts.
+            </p>
+
+        </div>
 
 
-<table style="margin-top: 20px;">
+        <form
+            class="filter-form"
+            method="get"
+        >
 
-    <thead>
-        <tr>
-            <th>Student</th>
-            <th>Admission No.</th>
-            <th>Class</th>
-            <th>Balance</th>
-            <th></th>
-        </tr>
-    </thead>
+            <input
+                class="field-control"
+                type="search"
+                name="q"
+                value="{{ query }}"
+                placeholder="Search student"
+            >
 
-    <tbody>
+            <button
+                class="button"
+                type="submit"
+            >
+                Search
+            </button>
 
-        {% for row in rows %}
+            {% if query %}
 
-            <tr>
+                <a
+                    class="button button-muted"
+                    href="{% url 'portal:finance-student-accounts' %}"
+                >
+                    Clear
+                </a>
 
-                <td>
-                    {{ row.enrollment.student.full_name }}
-                </td>
+            {% endif %}
 
-                <td>
-                    {{ row.enrollment.student.admission_number }}
-                </td>
+        </form>
 
-                <td>
-                    {{ row.enrollment.class_section }}
-                </td>
+    </div>
 
-                <td>
-                    GH₵{{ row.balance }}
-                </td>
 
-                <td>
+    <div class="table-scroll">
 
-                    <a
-                        href="{% url 'portal:finance-student-statement' row.enrollment.id %}"
-                    >
-                        Statement
-                    </a>
+        <table class="data-table">
 
-                </td>
+            <thead>
 
-            </tr>
+                <tr>
+                    <th>Student</th>
+                    <th>Admission Number</th>
+                    <th>Class</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
 
-        {% endfor %}
+            </thead>
 
-    </tbody>
+            <tbody>
 
-</table>
+                {% for row in rows %}
+
+                    <tr>
+
+                        <td>
+
+                            <div class="table-person">
+
+                                <div class="table-avatar">
+
+                                    {{ row.enrollment.student.first_name|first|upper }}
+
+                                    {{ row.enrollment.student.last_name|first|upper }}
+
+                                </div>
+
+                                <div class="table-person-copy">
+
+                                    <strong>
+                                        {{ row.enrollment.student.full_name }}
+                                    </strong>
+
+                                    <span>
+                                        Active student account
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+                            {{ row.enrollment.student.admission_number }}
+                        </td>
+
+                        <td>
+                            {{ row.enrollment.class_section }}
+                        </td>
+
+                        <td>
+
+                            <strong>
+
+                                {{ portal_theme.currency_code }}
+
+                                {{ row.balance|floatformat:2|intcomma }}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                class="table-link"
+                                href="{% url 'portal:finance-student-statement' row.enrollment.id %}"
+                            >
+                                View Statement
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+                                No student accounts matched your search.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

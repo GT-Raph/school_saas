@@ -20,6 +20,8 @@ from django.urls import (
     path,
 )
 
+from django.views.generic import RedirectView
+
 from apps.core.views import (
     health_check,
     live_check,
@@ -28,6 +30,15 @@ from apps.core.views import (
 
 
 urlpatterns = [
+    path(
+        "",
+        RedirectView.as_view(
+            pattern_name="accounts:login",
+            permanent=False,
+        ),
+        name="root",
+    ),
+
     path(
         "admin/",
         admin.site.urls,

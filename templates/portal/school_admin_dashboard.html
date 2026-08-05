@@ -1,55 +1,536 @@
 {% extends "portal/base.html" %}
+{% load humanize %}
+
 
 {% block title %}
-School Administration
+Admin Dashboard
 {% endblock %}
 
 
-{% block heading %}
-School Administration
+{% block mobile_title %}
+Admin Dashboard
 {% endblock %}
 
 
 {% block content %}
 
-<h1>
-    Welcome,
-    {{ request.user.get_full_name|default:request.user.username }}
-</h1>
+<div class="page-header">
 
-<div class="cards">
+    <div class="page-heading">
 
-    <div class="card">
-        <div>
+        <h1>
+            Admin Dashboard
+        </h1>
+
+        <p>
+            Welcome back,
+            {{ request.user.first_name|default:request.user.username }}.
+            Here is today’s school overview.
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
+
+        {% if portal_access.students_add %}
+
+            <a
+                class="button"
+                href="{% url 'portal:student-admit' %}"
+            >
+                + Admit Student
+            </a>
+
+        {% endif %}
+
+
+        {% if portal_access.finance %}
+
+            <a
+                class="button button-secondary"
+                href="{% url 'portal:finance-record-payment' %}"
+            >
+                Record Payment
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="stat-grid">
+
+    <article class="stat-card stat-purple">
+
+        <div class="stat-label">
             Active Students
         </div>
 
-        <div class="number">
-            {{ student_count }}
-        </div>
-    </div>
-
-
-    <div class="card">
-        <div>
-            Active Enrollments
+        <div class="stat-value">
+            {{ student_count|intcomma }}
         </div>
 
-        <div class="number">
-            {{ active_enrollments }}
-        </div>
-    </div>
-
-
-    <div class="card">
-        <div>
-            Student Invoices
+        <div class="stat-caption">
+            Currently enrolled students
         </div>
 
-        <div class="number">
-            {{ invoice_count }}
+    </article>
+
+
+    <article class="stat-card stat-blue">
+
+        <div class="stat-label">
+            Teachers
         </div>
-    </div>
+
+        <div class="stat-value">
+            {{ teacher_count|intcomma }}
+        </div>
+
+        <div class="stat-caption">
+            Active teaching staff
+        </div>
+
+    </article>
+
+
+    <article class="stat-card stat-orange">
+
+        <div class="stat-label">
+            Parents & Guardians
+        </div>
+
+        <div class="stat-value">
+            {{ guardian_count|intcomma }}
+        </div>
+
+        <div class="stat-caption">
+            Active guardian profiles
+        </div>
+
+    </article>
+
+
+    <article class="stat-card stat-green">
+
+        <div class="stat-label">
+            Outstanding Fees
+        </div>
+
+        <div class="stat-value">
+
+            {{ portal_theme.currency_code }}
+
+            {{ outstanding|floatformat:2|intcomma }}
+
+        </div>
+
+        <div class="stat-caption">
+            Current ledger balance
+        </div>
+
+    </article>
+
+</div>
+
+
+<div class="dashboard-grid">
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div class="panel-title">
+
+                <h2>
+                    Student Distribution
+                </h2>
+
+                <p>
+                    Active enrollment by class
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if class_chart %}
+
+            <div class="chart-list">
+
+                {% for item in class_chart %}
+
+                    <div class="chart-row">
+
+                        <div class="chart-label">
+                            {{ item.label }}
+                        </div>
+
+                        <div class="chart-track">
+
+                            <div
+                                class="chart-fill"
+                                style="
+                                    width:
+                                    {{ item.percent }}%;
+                                "
+                            ></div>
+
+                        </div>
+
+                        <div class="chart-number">
+                            {{ item.total }}
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                No active enrollment data yet.
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div class="panel-title">
+
+                <h2>
+                    Students
+                </h2>
+
+                <p>
+                    Gender distribution
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="donut-layout">
+
+            <div
+                class="donut-chart"
+                style="
+                    --male:
+                    {{ gender_summary.male_percent }}%;
+
+                    --female:
+                    {{ gender_summary.female_percent }}%;
+                "
+            >
+
+                <div class="donut-center">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <strong>
+                        {{ student_count|intcomma }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="legend">
+
+                <div class="legend-item">
+
+                    <span
+                        class="
+                            legend-dot
+                            legend-purple
+                        "
+                    ></span>
+
+                    Male
+                    {{ gender_summary.male }}
+
+                </div>
+
+
+                <div class="legend-item">
+
+                    <span
+                        class="
+                            legend-dot
+                            legend-orange
+                        "
+                    ></span>
+
+                    Female
+                    {{ gender_summary.female }}
+
+                </div>
+
+
+                {% if gender_summary.other %}
+
+                    <div class="legend-item">
+
+                        <span
+                            class="
+                                legend-dot
+                                legend-grey
+                            "
+                        ></span>
+
+                        Other
+                        {{ gender_summary.other }}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<div class="dashboard-grid dashboard-grid-equal">
+
+    <section class="table-card">
+
+        <div class="table-toolbar">
+
+            <div class="panel-title">
+
+                <h2>
+                    Recent Students
+                </h2>
+
+                <p>
+                    Latest student records
+                </p>
+
+            </div>
+
+
+            {% if portal_access.students %}
+
+                <a
+                    class="table-link"
+                    href="{% url 'portal:student-list' %}"
+                >
+                    View all
+                </a>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="table-scroll">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Student</th>
+                        <th>Admission No.</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for student in recent_students %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="table-person">
+
+                                    <div class="table-avatar">
+
+                                        {{ student.first_name|first|upper }}
+
+                                        {{ student.last_name|first|upper }}
+
+                                    </div>
+
+                                    <div class="table-person-copy">
+
+                                        <strong>
+                                            {{ student.full_name }}
+                                        </strong>
+
+                                        <span>
+                                            Added
+                                            {{ student.created_at|date:"d M Y" }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                {{ student.admission_number }}
+                            </td>
+
+                            <td>
+
+                                <span
+                                    class="
+                                        status-badge
+                                        status-{{ student.status }}
+                                    "
+                                >
+                                    {{ student.get_status_display }}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td colspan="3">
+
+                                <div class="empty-state">
+                                    No students have been added.
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <section class="table-card">
+
+        <div class="table-toolbar">
+
+            <div class="panel-title">
+
+                <h2>
+                    Recent Payments
+                </h2>
+
+                <p>
+                    Latest confirmed transactions
+                </p>
+
+            </div>
+
+
+            {% if portal_access.finance %}
+
+                <a
+                    class="table-link"
+                    href="{% url 'portal:finance-student-accounts' %}"
+                >
+                    View accounts
+                </a>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="table-scroll">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Student</th>
+                        <th>Reference</th>
+                        <th>Amount</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for payment in recent_payments %}
+
+                        <tr>
+
+                            <td>
+                                {{ payment.enrollment.student.full_name }}
+                            </td>
+
+                            <td>
+                                {{ payment.payment_number }}
+                            </td>
+
+                            <td>
+
+                                <strong>
+
+                                    {{ portal_theme.currency_code }}
+
+                                    {{ payment.amount|floatformat:2|intcomma }}
+
+                                </strong>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td colspan="3">
+
+                                <div class="empty-state">
+                                    No confirmed payments yet.
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
 
 </div>
 

@@ -311,6 +311,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 ]
 
 
@@ -391,6 +392,11 @@ TEMPLATES = [
                 (
                     "apps.portal.context_processors."
                     "portal_access"
+                ),
+
+                (
+                    "apps.portal.context_processors."
+                    "portal_theme"
                 ),
             ],
         },

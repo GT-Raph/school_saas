@@ -1,117 +1,233 @@
 {% extends "portal/base.html" %}
 
-{% block heading %}
-{{ offering.class_section }} — {{ offering.subject.name }}
+
+{% block title %}
+{{ offering.subject.name }}
 {% endblock %}
+
+
+{% block mobile_title %}
+Class Workspace
+{% endblock %}
+
 
 {% block content %}
 
-<h1>
-    {{ offering.subject.name }}
-</h1>
+<div class="page-header">
 
-<p>
-    {{ offering.class_section }}
-    ·
-    {{ offering.academic_year.name }}
-</p>
+    <div class="page-heading">
+
+        <h1>
+            {{ offering.subject.name }}
+        </h1>
+
+        <p>
+            {{ offering.class_section }}
+            ·
+            {{ offering.academic_year.name }}
+        </p>
 
 
-<div class="cards">
+        <div class="inline-metadata">
 
-    <div class="card">
-        <div>Students</div>
+            <span class="metadata-pill">
+                {{ enrollments|length }}
+                student{{ enrollments|length|pluralize }}
+            </span>
 
-        <div class="number">
-            {{ enrollments|length }}
+            <span class="metadata-pill">
+                Active Offering
+            </span>
+
         </div>
+
+    </div>
+
+
+    <div class="page-actions">
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:teacher-classes' %}"
+        >
+            Back to Classes
+        </a>
+
     </div>
 
 </div>
 
 
-<h2>
-    Term Actions
-</h2>
+<div class="section-heading">
 
-<table>
+    <div>
 
-    <thead>
-        <tr>
-            <th>Term</th>
-            <th>Attendance</th>
-            <th>Assessments</th>
-        </tr>
-    </thead>
+        <h2>
+            Term Workspaces
+        </h2>
 
-    <tbody>
+        <p>
+            Manage attendance and assessments for each term.
+        </p>
 
-        {% for term in terms %}
+    </div>
 
-            <tr>
-
-                <td>
-                    {{ term.name }}
-                </td>
-
-                <td>
-                    <a
-                        href="{% url 'portal:teacher-attendance' offering.id term.id %}"
-                    >
-                        Take Attendance
-                    </a>
-                </td>
-
-                <td>
-                    <a
-                        href="{% url 'portal:teacher-assessments' offering.id term.id %}"
-                    >
-                        Assessments
-                    </a>
-                </td>
-
-            </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
+</div>
 
 
-<h2 style="margin-top: 35px;">
-    Class List
-</h2>
+<div class="action-grid">
 
-<table>
+    {% for term in terms %}
 
-    <thead>
-        <tr>
-            <th>Admission No.</th>
-            <th>Student</th>
-        </tr>
-    </thead>
+        <article class="action-card">
 
-    <tbody>
+            <div class="action-card-label">
+                {{ offering.academic_year.name }}
+            </div>
 
-        {% for enrollment in enrollments %}
+            <h3>
+                {{ term.name }}
+            </h3>
 
-            <tr>
+            <p>
+                Record daily attendance and manage subject assessments.
+            </p>
 
-                <td>
-                    {{ enrollment.student.admission_number }}
-                </td>
 
-                <td>
-                    {{ enrollment.student.full_name }}
-                </td>
+            <div class="page-actions" style="margin-top: 18px;">
 
-            </tr>
+                <a
+                    class="button"
+                    href="{% url 'portal:teacher-attendance' offering.id term.id %}"
+                >
+                    Attendance
+                </a>
 
-        {% endfor %}
+                <a
+                    class="button button-secondary"
+                    href="{% url 'portal:teacher-assessments' offering.id term.id %}"
+                >
+                    Assessments
+                </a>
 
-    </tbody>
+            </div>
 
-</table>
+        </article>
+
+    {% empty %}
+
+        <div class="panel">
+            No terms are configured for this academic year.
+        </div>
+
+    {% endfor %}
+
+</div>
+
+
+<div class="section-heading">
+
+    <div>
+
+        <h2>
+            Class List
+        </h2>
+
+        <p>
+            Active students assigned to this class.
+        </p>
+
+    </div>
+
+</div>
+
+
+<section class="table-card">
+
+    <div class="table-scroll">
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+                    <th>Student</th>
+                    <th>Admission Number</th>
+                    <th>Enrollment Status</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for enrollment in enrollments %}
+
+                    <tr>
+
+                        <td>
+
+                            <div class="table-person">
+
+                                <div class="table-avatar">
+
+                                    {{ enrollment.student.first_name|first|upper }}
+
+                                    {{ enrollment.student.last_name|first|upper }}
+
+                                </div>
+
+                                <div class="table-person-copy">
+
+                                    <strong>
+                                        {{ enrollment.student.full_name }}
+                                    </strong>
+
+                                    <span>
+                                        {{ offering.class_section }}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+                            {{ enrollment.student.admission_number }}
+                        </td>
+
+                        <td>
+
+                            <span class="status-badge status-active">
+                                {{ enrollment.get_status_display }}
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="3">
+
+                            <div class="empty-state">
+                                No active students found.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}
