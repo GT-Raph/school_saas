@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.auth import SESSION_KEY
 from django.contrib.auth.models import Permission
 from django.test import (
     Client,
@@ -9,6 +10,7 @@ from django.test import (
 from django.urls import reverse
 
 from apps.accounts.models import User
+
 from apps.academics.models import (
     AcademicYear,
     ClassLevel,
@@ -17,30 +19,54 @@ from apps.academics.models import (
     SubjectOffering,
     TeacherAssignment,
 )
+
 from apps.guardians.models import (
     Guardian,
     StudentGuardian,
 )
+
 from apps.schools.models import (
     School,
     SchoolDomain,
     SchoolMembership,
     SchoolRole,
 )
+
 from apps.staff.models import Staff
 from apps.students.models import Student
 
 
+# =====================================================================
+# PORTAL / TENANT SECURITY
+# =====================================================================
+
+
 @override_settings(
+    DEBUG=True,
+    PLATFORM_LOGIN_HOST="login.localhost",
+    PLATFORM_BASE_DOMAIN="",
+    DEV_SERVER_PORT="8000",
     ALLOWED_HOSTS=[
         "testserver",
+        "localhost",
+        ".localhost",
+        "login.localhost",
+        "school-a.localhost",
+        "school-b.localhost",
         "school-a.testserver",
         "school-b.testserver",
-    ]
+    ],
 )
 class PortalTenantSecurityTests(TestCase):
 
     def setUp(self):
+
+        self.password = "Password123!"
+
+        # -------------------------------------------------------------
+        # Schools
+        # -------------------------------------------------------------
+
         self.school_a = School.objects.create(
             name="School A",
             slug="school-a",
@@ -51,6 +77,8 @@ class PortalTenantSecurityTests(TestCase):
             slug="school-b",
         )
 
+        # These explicit domains are retained so we can also test
+        # traditional/custom-domain tenant resolution.
         SchoolDomain.objects.create(
             school=self.school_a,
             domain="school-a.testserver",
@@ -65,16 +93,28 @@ class PortalTenantSecurityTests(TestCase):
             is_primary=True,
         )
 
+        # -------------------------------------------------------------
+        # User A
+        # -------------------------------------------------------------
+
         self.user_a = User.objects.create_user(
             username="user_a",
-            password="Password123!",
+            password=self.password,
         )
+
+        # -------------------------------------------------------------
+        # School A role
+        # -------------------------------------------------------------
 
         self.role_a = SchoolRole.objects.create(
             school=self.school_a,
             name="School Administrator",
             code="school-admin",
         )
+
+        # -------------------------------------------------------------
+        # User A membership in School A
+        # -------------------------------------------------------------
 
         self.membership_a = (
             SchoolMembership.objects.create(
@@ -90,18 +130,39 @@ class PortalTenantSecurityTests(TestCase):
 
         self.client = Client()
 
-    def test_user_can_login_to_own_school(
-        self,
-    ):
-        response = self.client.post(
+    # -----------------------------------------------------------------
+    # CENTRAL LOGIN -> CORRECT SCHOOL
+    # -----------------------------------------------------------------
+
+    def test_user_can_login_to_own_school(self):
+        """
+        User authenticates centrally.
+
+        The platform finds the user's active school membership,
+        creates a one-use handoff token, and the destination
+        school establishes its own authenticated session.
+        """
+
+        central_client = Client()
+
+        # -------------------------------------------------------------
+        # 1. Authenticate on central login
+        # -------------------------------------------------------------
+
+        response = central_client.post(
             reverse(
                 "accounts:login"
             ),
             {
-                "username": "user_a",
-                "password": "Password123!",
+                "username":
+                    self.user_a.username,
+
+                "password":
+                    self.password,
             },
-            HTTP_HOST="school-a.testserver",
+            HTTP_HOST=(
+                "login.localhost"
+            ),
         )
 
         self.assertEqual(
@@ -109,24 +170,30 @@ class PortalTenantSecurityTests(TestCase):
             302,
         )
 
-        self.assertTrue(
-            response.wsgi_request
-            .user
-            .is_authenticated
+        self.assertEqual(
+            response.url,
+            reverse(
+                "accounts:post-login"
+            ),
         )
 
-    def test_user_cannot_login_to_other_school(
-        self,
-    ):
-        response = self.client.post(
+        # Central host has authenticated the user.
+        self.assertIn(
+            SESSION_KEY,
+            central_client.session,
+        )
+
+        # -------------------------------------------------------------
+        # 2. Resolve membership and generate handoff
+        # -------------------------------------------------------------
+
+        response = central_client.get(
             reverse(
-                "accounts:login"
+                "accounts:post-login"
             ),
-            {
-                "username": "user_a",
-                "password": "Password123!",
-            },
-            HTTP_HOST="school-b.testserver",
+            HTTP_HOST=(
+                "login.localhost"
+            ),
         )
 
         self.assertEqual(
@@ -134,26 +201,186 @@ class PortalTenantSecurityTests(TestCase):
             200,
         )
 
-        self.assertContains(
-            response,
-            (
-                "Your account does not "
-                "have access to this school."
+        self.assertIn(
+            "token",
+            response.context,
+        )
+
+        self.assertIn(
+            "school",
+            response.context,
+        )
+
+        self.assertEqual(
+            response.context[
+                "school"
+            ],
+            self.school_a,
+        )
+
+        token = response.context[
+            "token"
+        ]
+
+        self.assertTrue(
+            token
+        )
+
+        # -------------------------------------------------------------
+        # 3. Simulate browser arriving at School A
+        # -------------------------------------------------------------
+
+        tenant_client = Client()
+
+        response = tenant_client.post(
+            reverse(
+                "accounts:handoff"
+            ),
+            {
+                "token": token,
+            },
+            HTTP_HOST=(
+                "school-a.localhost"
             ),
         )
 
-        self.assertFalse(
-            response.wsgi_request
-            .user
-            .is_authenticated
+        self.assertEqual(
+            response.status_code,
+            302,
         )
+
+        # -------------------------------------------------------------
+        # 4. Tenant now has its own authenticated session
+        # -------------------------------------------------------------
+
+        self.assertIn(
+            SESSION_KEY,
+            tenant_client.session,
+        )
+
+        self.assertEqual(
+            str(
+                tenant_client.session[
+                    SESSION_KEY
+                ]
+            ),
+            str(
+                self.user_a.pk
+            ),
+        )
+
+    # -----------------------------------------------------------------
+    # TOKEN MUST NOT WORK FOR ANOTHER SCHOOL
+    # -----------------------------------------------------------------
+
+    def test_user_cannot_login_to_other_school(self):
+        """
+        A handoff token created for School A must not be usable
+        on School B.
+        """
+
+        central_client = Client()
+
+        # -------------------------------------------------------------
+        # 1. Authenticate centrally
+        # -------------------------------------------------------------
+
+        response = central_client.post(
+            reverse(
+                "accounts:login"
+            ),
+            {
+                "username":
+                    self.user_a.username,
+
+                "password":
+                    self.password,
+            },
+            HTTP_HOST=(
+                "login.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        # -------------------------------------------------------------
+        # 2. Generate token for School A
+        # -------------------------------------------------------------
+
+        response = central_client.get(
+            reverse(
+                "accounts:post-login"
+            ),
+            HTTP_HOST=(
+                "login.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        token = response.context[
+            "token"
+        ]
+
+        # -------------------------------------------------------------
+        # 3. Attempt to use School A token on School B
+        # -------------------------------------------------------------
+
+        school_b_client = Client()
+
+        response = school_b_client.post(
+            reverse(
+                "accounts:handoff"
+            ),
+            {
+                "token": token,
+            },
+            HTTP_HOST=(
+                "school-b.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+        # -------------------------------------------------------------
+        # 4. School B must not receive an authenticated session
+        # -------------------------------------------------------------
+
+        self.assertNotIn(
+            SESSION_KEY,
+            school_b_client.session,
+        )
+
+    # -----------------------------------------------------------------
+    # TENANT ISOLATION AFTER AUTHENTICATION
+    # -----------------------------------------------------------------
 
     def test_school_a_user_cannot_access_school_b_portal(
         self,
     ):
+        """
+        Even if User A is authenticated, authentication alone must
+        never grant access to School B.
+
+        Tenant membership is still required.
+        """
+
         logged_in = self.client.login(
-            username="user_a",
-            password="Password123!",
+            username=(
+                self.user_a.username
+            ),
+            password=(
+                self.password
+            ),
         )
 
         self.assertTrue(
@@ -164,13 +391,223 @@ class PortalTenantSecurityTests(TestCase):
             reverse(
                 "portal:home"
             ),
-            HTTP_HOST="school-b.testserver",
+            HTTP_HOST=(
+                "school-b.testserver"
+            ),
         )
 
         self.assertEqual(
             response.status_code,
             403,
         )
+
+    # -----------------------------------------------------------------
+    # SCHOOL LOGIN PAGE REDIRECTS TO CENTRAL LOGIN
+    # -----------------------------------------------------------------
+
+    def test_school_login_redirects_to_central_login(
+        self,
+    ):
+        """
+        Users should not log in directly on individual school
+        subdomains.
+
+        School login routes redirect to the central authentication
+        domain.
+        """
+
+        response = self.client.get(
+            reverse(
+                "accounts:login"
+            ),
+            HTTP_HOST=(
+                "school-a.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        self.assertTrue(
+            response.url.startswith(
+                (
+                    "http://"
+                    "login.localhost:"
+                    "8000/"
+                )
+            )
+        )
+
+        self.assertIn(
+            "/accounts/login/",
+            response.url,
+        )
+
+    # -----------------------------------------------------------------
+    # HANDOFF TOKEN REPLAY PROTECTION
+    # -----------------------------------------------------------------
+
+    def test_login_handoff_cannot_be_reused(
+        self,
+    ):
+        """
+        A handoff token must be usable exactly once.
+        """
+
+        central_client = Client()
+
+        # -------------------------------------------------------------
+        # 1. Central authentication
+        # -------------------------------------------------------------
+
+        response = central_client.post(
+            reverse(
+                "accounts:login"
+            ),
+            {
+                "username":
+                    self.user_a.username,
+
+                "password":
+                    self.password,
+            },
+            HTTP_HOST=(
+                "login.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        # -------------------------------------------------------------
+        # 2. Generate handoff token
+        # -------------------------------------------------------------
+
+        response = central_client.get(
+            reverse(
+                "accounts:post-login"
+            ),
+            HTTP_HOST=(
+                "login.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        token = response.context[
+            "token"
+        ]
+
+        # -------------------------------------------------------------
+        # 3. First use succeeds
+        # -------------------------------------------------------------
+
+        first_client = Client()
+
+        first_response = first_client.post(
+            reverse(
+                "accounts:handoff"
+            ),
+            {
+                "token": token,
+            },
+            HTTP_HOST=(
+                "school-a.localhost"
+            ),
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            302,
+        )
+
+        self.assertIn(
+            SESSION_KEY,
+            first_client.session,
+        )
+
+        # -------------------------------------------------------------
+        # 4. Second use must fail
+        # -------------------------------------------------------------
+
+        second_client = Client()
+
+        second_response = (
+            second_client.post(
+                reverse(
+                    "accounts:handoff"
+                ),
+                {
+                    "token": token,
+                },
+                HTTP_HOST=(
+                    "school-a.localhost"
+                ),
+            )
+        )
+
+        self.assertEqual(
+            second_response.status_code,
+            400,
+        )
+
+        self.assertNotIn(
+            SESSION_KEY,
+            second_client.session,
+        )
+
+    # -----------------------------------------------------------------
+    # LOCALHOST SUBDOMAIN TENANT RESOLUTION
+    # -----------------------------------------------------------------
+
+    def test_school_slug_resolves_localhost_tenant(
+        self,
+    ):
+        """
+        school-a.localhost should resolve School A automatically
+        from the school's slug.
+
+        No SchoolDomain row for school-a.localhost is required.
+        """
+
+        logged_in = self.client.login(
+            username=(
+                self.user_a.username
+            ),
+            password=(
+                self.password
+            ),
+        )
+
+        self.assertTrue(
+            logged_in
+        )
+
+        response = self.client.get(
+            reverse(
+                "portal:home"
+            ),
+            HTTP_HOST=(
+                "school-a.localhost"
+            ),
+        )
+
+        self.assertNotEqual(
+            response.status_code,
+            403,
+        )
+
+
+# =====================================================================
+# TEACHER OBJECT ACCESS SECURITY
+# =====================================================================
 
 
 @override_settings(
@@ -179,44 +616,69 @@ class PortalTenantSecurityTests(TestCase):
         "teacher-security.testserver",
     ]
 )
-class TeacherObjectAccessTests(TestCase):
+class TeacherObjectAccessTests(
+    TestCase
+):
 
     def setUp(self):
+
         self.school = School.objects.create(
-            name="Teacher Security School",
-            slug="teacher-security",
+            name=(
+                "Teacher Security School"
+            ),
+            slug=(
+                "teacher-security"
+            ),
         )
 
         SchoolDomain.objects.create(
             school=self.school,
-            domain="teacher-security.testserver",
+            domain=(
+                "teacher-security.testserver"
+            ),
             is_verified=True,
             is_primary=True,
         )
 
-        self.user_one = User.objects.create_user(
-            username="teacher_one",
-            password="Password123!",
+        self.user_one = (
+            User.objects.create_user(
+                username=(
+                    "teacher_one"
+                ),
+                password=(
+                    "Password123!"
+                ),
+            )
         )
 
-        self.user_two = User.objects.create_user(
-            username="teacher_two",
-            password="Password123!",
+        self.user_two = (
+            User.objects.create_user(
+                username=(
+                    "teacher_two"
+                ),
+                password=(
+                    "Password123!"
+                ),
+            )
         )
 
-        self.role = SchoolRole.objects.create(
-            school=self.school,
-            name="Teacher",
-            code="teacher",
+        self.role = (
+            SchoolRole.objects.create(
+                school=self.school,
+                name="Teacher",
+                code="teacher",
+            )
         )
 
-        permission = Permission.objects.get(
-            content_type__app_label=(
-                "academics"
-            ),
-            codename=(
-                "view_teacherassignment"
-            ),
+        permission = (
+            Permission.objects.get(
+                content_type__app_label=(
+                    "academics"
+                ),
+                codename=(
+                    "view_teacherassignment"
+                ),
+            )
         )
 
         self.role.permissions.add(
@@ -227,6 +689,7 @@ class TeacherObjectAccessTests(TestCase):
             self.user_one,
             self.user_two,
         ]:
+
             membership = (
                 SchoolMembership.objects.create(
                     school=self.school,
@@ -239,50 +702,62 @@ class TeacherObjectAccessTests(TestCase):
                 self.role
             )
 
-        self.teacher_one = Staff.objects.create(
-            school=self.school,
-            user=self.user_one,
-            employee_number="T001",
-            first_name="Teacher",
-            last_name="One",
-            is_teacher=True,
-            employment_status=(
-                Staff.EmploymentStatus.ACTIVE
-            ),
+        self.teacher_one = (
+            Staff.objects.create(
+                school=self.school,
+                user=self.user_one,
+                employee_number="T001",
+                first_name="Teacher",
+                last_name="One",
+                is_teacher=True,
+                employment_status=(
+                    Staff
+                    .EmploymentStatus
+                    .ACTIVE
+                ),
+            )
         )
 
-        self.teacher_two = Staff.objects.create(
-            school=self.school,
-            user=self.user_two,
-            employee_number="T002",
-            first_name="Teacher",
-            last_name="Two",
-            is_teacher=True,
-            employment_status=(
-                Staff.EmploymentStatus.ACTIVE
-            ),
+        self.teacher_two = (
+            Staff.objects.create(
+                school=self.school,
+                user=self.user_two,
+                employee_number="T002",
+                first_name="Teacher",
+                last_name="Two",
+                is_teacher=True,
+                employment_status=(
+                    Staff
+                    .EmploymentStatus
+                    .ACTIVE
+                ),
+            )
         )
 
-        self.year = AcademicYear.objects.create(
-            school=self.school,
-            name="2026/2027",
-            starts_on=date(
-                2026,
-                9,
-                1,
-            ),
-            ends_on=date(
-                2027,
-                7,
-                31,
-            ),
+        self.year = (
+            AcademicYear.objects.create(
+                school=self.school,
+                name="2026/2027",
+                starts_on=date(
+                    2026,
+                    9,
+                    1,
+                ),
+                ends_on=date(
+                    2027,
+                    7,
+                    31,
+                ),
+            )
         )
 
-        self.level = ClassLevel.objects.create(
-            school=self.school,
-            name="Basic 4",
-            code="basic-4",
-            order=4,
+        self.level = (
+            ClassLevel.objects.create(
+                school=self.school,
+                name="Basic 4",
+                code="basic-4",
+                order=4,
+            )
         )
 
         self.section_a = (
@@ -303,17 +778,21 @@ class TeacherObjectAccessTests(TestCase):
             )
         )
 
-        self.subject = Subject.objects.create(
-            school=self.school,
-            name="Mathematics",
-            code="mathematics",
+        self.subject = (
+            Subject.objects.create(
+                school=self.school,
+                name="Mathematics",
+                code="mathematics",
+            )
         )
 
         self.offering_one = (
             SubjectOffering.objects.create(
                 school=self.school,
                 academic_year=self.year,
-                class_section=self.section_a,
+                class_section=(
+                    self.section_a
+                ),
                 subject=self.subject,
             )
         )
@@ -322,7 +801,9 @@ class TeacherObjectAccessTests(TestCase):
             SubjectOffering.objects.create(
                 school=self.school,
                 academic_year=self.year,
-                class_section=self.section_b,
+                class_section=(
+                    self.section_b
+                ),
                 subject=self.subject,
             )
         )
@@ -358,9 +839,16 @@ class TeacherObjectAccessTests(TestCase):
     def test_teacher_cannot_open_other_teachers_class(
         self,
     ):
-        logged_in = self.client.login(
-            username="teacher_one",
-            password="Password123!",
+
+        logged_in = (
+            self.client.login(
+                username=(
+                    "teacher_one"
+                ),
+                password=(
+                    "Password123!"
+                ),
+            )
         )
 
         self.assertTrue(
@@ -369,11 +857,13 @@ class TeacherObjectAccessTests(TestCase):
 
         response = self.client.get(
             reverse(
-                "portal:teacher-class-detail",
+                (
+                    "portal:"
+                    "teacher-class-detail"
+                ),
                 kwargs={
-                    "offering_id": (
-                        self.offering_two.id
-                    ),
+                    "offering_id":
+                        self.offering_two.id,
                 },
             ),
             HTTP_HOST=(
@@ -387,18 +877,32 @@ class TeacherObjectAccessTests(TestCase):
         )
 
 
+# =====================================================================
+# PARENT / GUARDIAN OBJECT ACCESS SECURITY
+# =====================================================================
+
+
 @override_settings(
     ALLOWED_HOSTS=[
         "testserver",
         "parent-security.testserver",
     ]
 )
-class ParentObjectAccessTests(TestCase):
+class ParentObjectAccessTests(
+    TestCase
+):
 
     def setUp(self):
-        self.school = School.objects.create(
-            name="Parent Security School",
-            slug="parent-security",
+
+        self.school = (
+            School.objects.create(
+                name=(
+                    "Parent Security School"
+                ),
+                slug=(
+                    "parent-security"
+                ),
+            )
         )
 
         SchoolDomain.objects.create(
@@ -412,8 +916,12 @@ class ParentObjectAccessTests(TestCase):
 
         self.parent_user = (
             User.objects.create_user(
-                username="parent_one",
-                password="Password123!",
+                username=(
+                    "parent_one"
+                ),
+                password=(
+                    "Password123!"
+                ),
             )
         )
 
@@ -443,22 +951,32 @@ class ParentObjectAccessTests(TestCase):
                 user=self.parent_user,
                 first_name="Parent",
                 last_name="One",
-                phone_number="0200000001",
+                phone_number=(
+                    "0200000001"
+                ),
             )
         )
 
-        self.own_child = Student.objects.create(
-            school=self.school,
-            admission_number="P-001",
-            first_name="Own",
-            last_name="Child",
+        self.own_child = (
+            Student.objects.create(
+                school=self.school,
+                admission_number=(
+                    "P-001"
+                ),
+                first_name="Own",
+                last_name="Child",
+            )
         )
 
-        self.other_child = Student.objects.create(
-            school=self.school,
-            admission_number="P-002",
-            first_name="Other",
-            last_name="Child",
+        self.other_child = (
+            Student.objects.create(
+                school=self.school,
+                admission_number=(
+                    "P-002"
+                ),
+                first_name="Other",
+                last_name="Child",
+            )
         )
 
         StudentGuardian.objects.create(
@@ -467,7 +985,8 @@ class ParentObjectAccessTests(TestCase):
             student=self.own_child,
             relationship=(
                 StudentGuardian
-                .Relationship.MOTHER
+                .Relationship
+                .MOTHER
             ),
             is_primary_contact=True,
         )
@@ -477,9 +996,16 @@ class ParentObjectAccessTests(TestCase):
     def test_parent_can_open_own_child(
         self,
     ):
-        logged_in = self.client.login(
-            username="parent_one",
-            password="Password123!",
+
+        logged_in = (
+            self.client.login(
+                username=(
+                    "parent_one"
+                ),
+                password=(
+                    "Password123!"
+                ),
+            )
         )
 
         self.assertTrue(
@@ -488,11 +1014,13 @@ class ParentObjectAccessTests(TestCase):
 
         response = self.client.get(
             reverse(
-                "portal:parent-child-detail",
+                (
+                    "portal:"
+                    "parent-child-detail"
+                ),
                 kwargs={
-                    "student_id": (
-                        self.own_child.id
-                    ),
+                    "student_id":
+                        self.own_child.id,
                 },
             ),
             HTTP_HOST=(
@@ -508,9 +1036,16 @@ class ParentObjectAccessTests(TestCase):
     def test_parent_cannot_open_other_child(
         self,
     ):
-        logged_in = self.client.login(
-            username="parent_one",
-            password="Password123!",
+
+        logged_in = (
+            self.client.login(
+                username=(
+                    "parent_one"
+                ),
+                password=(
+                    "Password123!"
+                ),
+            )
         )
 
         self.assertTrue(
@@ -519,11 +1054,13 @@ class ParentObjectAccessTests(TestCase):
 
         response = self.client.get(
             reverse(
-                "portal:parent-child-detail",
+                (
+                    "portal:"
+                    "parent-child-detail"
+                ),
                 kwargs={
-                    "student_id": (
-                        self.other_child.id
-                    ),
+                    "student_id":
+                        self.other_child.id,
                 },
             ),
             HTTP_HOST=(
@@ -537,6 +1074,11 @@ class ParentObjectAccessTests(TestCase):
         )
 
 
+# =====================================================================
+# SCHOOL USER MANAGEMENT SECURITY
+# =====================================================================
+
+
 class SchoolUserManagementSecurityTests(
     TestCase
 ):
@@ -544,25 +1086,50 @@ class SchoolUserManagementSecurityTests(
     def test_membership_lookup_is_tenant_scoped(
         self,
     ):
-        school_a = School.objects.create(
-            name="School A Users",
-            slug="school-a-users",
+
+        school_a = (
+            School.objects.create(
+                name="School A Users",
+                slug="school-a-users",
+            )
         )
 
-        school_b = School.objects.create(
-            name="School B Users",
-            slug="school-b-users",
+        school_b = (
+            School.objects.create(
+                name="School B Users",
+                slug="school-b-users",
+            )
         )
 
-        user = User.objects.create_user(
-            username="shared-test-user",
-            password="Password123!",
+        user_a = User.objects.create_user(
+            username=(
+                "shared-test-user"
+            ),
+            password=(
+                "Password123!"
+            ),
+        )
+
+        user_b = User.objects.create_user(
+            username=(
+                "shared-test-user-b"
+            ),
+            password=(
+                "Password123!"
+            ),
+        )
+
+        # Ensure user_a remains deliberately separate from
+        # School B's membership.
+        self.assertNotEqual(
+            user_a.id,
+            user_b.id,
         )
 
         membership_b = (
             SchoolMembership.objects.create(
                 school=school_b,
-                user=user,
+                user=user_b,
             )
         )
 

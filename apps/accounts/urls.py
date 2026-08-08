@@ -1,10 +1,6 @@
 from django.urls import path
 
-from .views import (
-    SchoolLoginView,
-    force_password_change,
-    school_logout,
-)
+from . import views
 
 
 app_name = "accounts"
@@ -13,19 +9,37 @@ app_name = "accounts"
 urlpatterns = [
     path(
         "login/",
-        SchoolLoginView.as_view(),
+        views.central_login,
         name="login",
     ),
 
     path(
-        "logout/",
-        school_logout,
-        name="logout",
+        "post-login/",
+        views.post_login,
+        name="post-login",
+    ),
+
+    path(
+        "choose-school/",
+        views.choose_school,
+        name="choose-school",
+    ),
+
+    path(
+        "handoff/",
+        views.tenant_handoff,
+        name="handoff",
     ),
 
     path(
         "change-temporary-password/",
-        force_password_change,
+        views.force_password_change,
         name="force-password-change",
+    ),
+
+    path(
+        "logout/",
+        views.school_logout,
+        name="logout",
     ),
 ]

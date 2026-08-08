@@ -461,11 +461,15 @@ else:
 
 AUTH_USER_MODEL = "accounts.User"
 
-LOGIN_URL = "/login/"
+LOGIN_URL = "/accounts/login/"
 
-LOGIN_REDIRECT_URL = "/portal/"
+LOGIN_REDIRECT_URL = (
+    "/accounts/post-login/"
+)
 
-LOGOUT_REDIRECT_URL = "/login/"
+LOGOUT_REDIRECT_URL = (
+    "/accounts/login/"
+)
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -668,6 +672,68 @@ LOGGING = {
     },
 }
 
+# -------------------------------------------------------------------
+# Platform domains
+# -------------------------------------------------------------------
+
+PLATFORM_BASE_DOMAIN = os.environ.get(
+    "PLATFORM_BASE_DOMAIN",
+    "",
+).strip().lower()
+
+
+DEV_SERVER_PORT = os.environ.get(
+    "DEV_SERVER_PORT",
+    "8000",
+).strip()
+
+
+if DEBUG:
+
+    default_login_host = (
+        "login.localhost"
+    )
+
+else:
+
+    default_login_host = (
+        f"login.{PLATFORM_BASE_DOMAIN}"
+        if PLATFORM_BASE_DOMAIN
+        else ""
+    )
+
+
+PLATFORM_LOGIN_HOST = os.environ.get(
+    "PLATFORM_LOGIN_HOST",
+    default_login_host,
+).strip().lower()
+
+
+PLATFORM_RESERVED_SUBDOMAINS = {
+    "login",
+    "www",
+    "app",
+    "admin",
+    "api",
+    "static",
+    "media",
+}
+
+if PLATFORM_BASE_DOMAIN:
+
+    wildcard_host = (
+        f".{PLATFORM_BASE_DOMAIN}"
+    )
+
+    if wildcard_host not in ALLOWED_HOSTS:
+
+        ALLOWED_HOSTS.append(
+            wildcard_host
+        )
+
+
+# Keep sessions isolated between school subdomains.
+SESSION_COOKIE_DOMAIN = None
 
 # -------------------------------------------------------------------
 # General Django settings
