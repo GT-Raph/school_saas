@@ -9,13 +9,21 @@ from .models import (
 
 class TenantMiddleware:
     """
-    Resolve the active school/tenant.
+    Resolve a tenant from the request hostname.
+
+    Development:
+        stanne.localhost
+        demo.localhost
 
     Production:
-        premier.yourplatform.com
+        stanne.example.com
+        demo.example.com
 
-    Development fallback:
-        DEV_TENANT_SLUG=demo-international-school
+    Optional custom domains:
+        portal.some-school.edu.gh
+
+    Platform hosts such as login.example.com
+    do not resolve to a school.
     """
 
     def __init__(
@@ -31,7 +39,10 @@ class TenantMiddleware:
         request,
     ):
         request.school = None
-        request.active_membership = None
+
+        request.active_membership = (
+            None
+        )
 
         hostname = (
             request.get_host()
@@ -40,52 +51,152 @@ class TenantMiddleware:
             .lower()
         )
 
-        domain = (
-            SchoolDomain.objects
-            .select_related(
-                "school"
-            )
-            .filter(
-                domain=hostname,
-                is_verified=True,
-            )
-            .first()
-        )
+        platform_hosts = {
+            "localhost",
+            "127.0.0.1",
+            settings.PLATFORM_LOGIN_HOST,
+        }
 
-        if domain:
-            request.school = (
-                domain.school
-            )
+        if settings.PLATFORM_BASE_DOMAIN:
 
-        elif settings.DEBUG:
+            platform_hosts.update(
+                {
+                    settings
+                    .PLATFORM_BASE_DOMAIN,
 
-            dev_tenant_slug = getattr(
-                settings,
-                "DEV_TENANT_SLUG",
-                "",
+                    (
+                        "www."
+                        + settings
+                        .PLATFORM_BASE_DOMAIN
+                    ),
+                }
             )
 
-            if dev_tenant_slug:
-                request.school = (
-                    School.objects
-                    .filter(
-                        slug=(
-                            dev_tenant_slug
-                        )
-                    )
-                    .first()
+        # -----------------------------------------------------------
+        # Central/platform host
+        # -----------------------------------------------------------
+
+        if hostname in platform_hosts:
+
+            request.school = None
+
+        else:
+
+            # -------------------------------------------------------
+            # Explicit custom domain
+            # -------------------------------------------------------
+
+            domain = (
+                SchoolDomain.objects
+                .select_related(
+                    "school"
                 )
+                .filter(
+                    domain=hostname,
+                    is_verified=True,
+                )
+                .first()
+            )
+
+            if domain:
+
+                request.school = (
+                    domain.school
+                )
+
+            # -------------------------------------------------------
+            # Development subdomain
+            # -------------------------------------------------------
+
+            elif (
+                settings.DEBUG
+                and hostname.endswith(
+                    ".localhost"
+                )
+            ):
+
+                slug = hostname[
+                    :-len(".localhost")
+                ]
+
+                if (
+                    slug
+                    and slug
+                    not in settings
+                    .PLATFORM_RESERVED_SUBDOMAINS
+                ):
+
+                    request.school = (
+                        School.objects
+                        .filter(
+                            slug=slug
+                        )
+                        .first()
+                    )
+
+            # -------------------------------------------------------
+            # Production SaaS subdomain
+            # -------------------------------------------------------
+
+            elif (
+                settings
+                .PLATFORM_BASE_DOMAIN
+
+                and hostname.endswith(
+                    "."
+                    + settings
+                    .PLATFORM_BASE_DOMAIN
+                )
+            ):
+
+                suffix = (
+                    "."
+                    + settings
+                    .PLATFORM_BASE_DOMAIN
+                )
+
+                slug = hostname[
+                    :-len(suffix)
+                ]
+
+                # Only standard single-label
+                # subdomains are considered.
+                if (
+                    slug
+                    and "." not in slug
+                    and slug
+                    not in settings
+                    .PLATFORM_RESERVED_SUBDOMAINS
+                ):
+
+                    request.school = (
+                        School.objects
+                        .filter(
+                            slug=slug
+                        )
+                        .first()
+                    )
+
+        # -----------------------------------------------------------
+        # Current user's membership for this tenant
+        # -----------------------------------------------------------
 
         if (
             request.school
-            and request.user
-            .is_authenticated
+            and request.user.is_authenticated
         ):
+
             request.active_membership = (
                 SchoolMembership.objects
                 .filter(
-                    school=request.school,
-                    user=request.user,
+                    school=(
+                        request.school
+                    ),
+
+                    user=(
+                        request.user
+                    ),
+
                     is_active=True,
                 )
                 .prefetch_related(

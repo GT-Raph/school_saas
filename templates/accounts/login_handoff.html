@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        Opening School Portal
+    </title>
+
+</head>
+
+
+<body>
+
+<div
+    style="
+        max-width: 500px;
+        margin: 100px auto;
+        text-align: center;
+        font-family: Arial, sans-serif;
+    "
+>
+
+    <h1>
+        Opening {{ school.name }}
+    </h1>
+
+    <p>
+        Please wait...
+    </p>
+
+
+    <form
+        id="handoffForm"
+        method="post"
+        action="{{ target_url }}"
+    >
+
+        <input
+            type="hidden"
+            name="token"
+            value="{{ token }}"
+        >
+
+        <noscript>
+
+            <button type="submit">
+                Continue
+            </button>
+
+        </noscript>
+
+    </form>
+
+</div>
+
+
+<script>
+    document
+        .getElementById(
+            "handoffForm"
+        )
+        .submit();
+</script>
+
+</body>
+
+</html>

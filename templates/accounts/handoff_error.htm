@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Login Request Failed
+    </title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            display: grid;
+            place-items: center;
+
+            padding: 24px;
+
+            font-family:
+                Inter,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background: #f4f0fb;
+            color: #231d2b;
+        }
+
+        .card {
+            width: min(
+                460px,
+                100%
+            );
+
+            padding: 36px;
+
+            background: #ffffff;
+
+            border: 1px solid #ebe5f1;
+            border-radius: 18px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(
+                    57,
+                    40,
+                    74,
+                    0.10
+                );
+
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+
+            padding:
+                6px
+                10px;
+
+            margin-bottom: 16px;
+
+            border-radius: 999px;
+
+            background: #fef2f2;
+            color: #b42318;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        h1 {
+            margin:
+                0
+                0
+                12px;
+
+            font-size: 26px;
+            line-height: 1.2;
+
+            letter-spacing:
+                -0.03em;
+        }
+
+        .message {
+            margin:
+                0
+                0
+                24px;
+
+            color: #6b6472;
+
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .error {
+            margin:
+                10px
+                0;
+
+            padding: 12px;
+
+            background: #fff7f7;
+
+            border:
+                1px solid #f4cccc;
+
+            border-radius: 9px;
+
+            color: #b42318;
+
+            font-size: 13px;
+        }
+
+        .button {
+            display: inline-block;
+
+            width: 100%;
+
+            margin-top: 16px;
+
+            padding:
+                13px
+                18px;
+
+            border-radius: 9px;
+
+            background: #7c3aed;
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .button:hover {
+            background: #6d28d9;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="card">
+
+    <div class="badge">
+        Authentication Error
+    </div>
+
+    <h1>
+        Login request could not be completed
+    </h1>
+
+    <p class="message">
+        This login request is no longer valid.
+        Return to the central login page and sign in again.
+    </p>
+
+
+    {% if errors %}
+
+        {% for error in errors %}
+
+            <div class="error">
+                {{ error }}
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <a
+        class="button"
+        href="http://login.localhost:8000/accounts/login/"
+    >
+        Return to Login
+    </a>
+
+</div>
+
+</body>
+
+</html>
