@@ -1,5 +1,5 @@
 from django.contrib.auth import (
-    logout, update_session_auth_hash,
+    login, logout, update_session_auth_hash,
     )
 from django.contrib.auth.views import (
     LoginView,
@@ -111,31 +111,57 @@ def render_handoff(
     *,
     membership,
 ):
+    """
+    Create a one-use login handoff for the selected school.
+
+    After the handoff token has been created, destroy the
+    central authentication session.
+
+    The destination school will establish its own isolated
+    session when it consumes the handoff token.
+    """
+
+    school = membership.school
+
+    # ---------------------------------------------------------
+    # Create one-use handoff BEFORE logging out centrally
+    # ---------------------------------------------------------
+
     token = create_login_handoff(
         user=request.user,
-        school=membership.school,
+        school=school,
     )
 
     target_url = school_url(
-        school=membership.school,
+        school=school,
         path="/accounts/handoff/",
     )
 
+    # ---------------------------------------------------------
+    # IMPORTANT:
+    # Remove central-login session.
+    #
+    # Without this, logging out of the school sends the user
+    # back to login.localhost where the old central session
+    # automatically logs them straight back in.
+    # ---------------------------------------------------------
+
+    logout(
+        request
+    )
+
+    # ---------------------------------------------------------
+    # The token is sufficient for the destination school to
+    # establish its own authenticated session.
+    # ---------------------------------------------------------
+
     return render(
         request,
-        (
-            "accounts/"
-            "login_handoff.html"
-        ),
+        "accounts/login_handoff.html",
         {
-            "school":
-                membership.school,
-
-            "target_url":
-                target_url,
-
-            "token":
-                token,
+            "school": school,
+            "target_url": target_url,
+            "token": token,
         },
     )
 
@@ -359,6 +385,11 @@ def tenant_handoff(
 def school_logout(
     request,
 ):
+    """
+    End the current host's authenticated session and
+    return the user to the central login page.
+    """
+
     logout(
         request
     )
@@ -453,7 +484,14 @@ class SchoolLoginView(LoginView):
 def school_logout(
     request,
 ):
-    logout(request)
+    """
+    End the current host's authenticated session and
+    return the user to the central login page.
+    """
+
+    logout(
+        request
+    )
 
     return redirect(
         "accounts:login"
