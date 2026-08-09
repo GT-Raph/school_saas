@@ -18,11 +18,24 @@ Admin Dashboard
 
     <div class="page-heading">
 
-        <h1>
+        <h1 
+        class="page-title"
+        
+        style="
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            color: var(--text);
+        "
+        >
             Admin Dashboard
         </h1>
 
-        <p>
+        <p
+            style="
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+            "
+        >
             Welcome back,
             {{ request.user.first_name|default:request.user.username }}.
             Here is today’s school overview.
@@ -38,7 +51,16 @@ Admin Dashboard
             <a
                 class="button"
                 href="{% url 'portal:student-admit' %}"
-            >
+
+                style="
+                    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+                    border: none;
+                    transition: background 0.3s ease, box-shadow 0.3s ease;
+                    "
+
+                >
                 + Admit Student
             </a>
 
@@ -50,7 +72,15 @@ Admin Dashboard
             <a
                 class="button button-secondary"
                 href="{% url 'portal:finance-record-payment' %}"
-            >
+            
+                style="
+                    background: linear-gradient(135deg, #f97316, #fb923c);
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+                    border: none;
+                    transition: background 0.3s ease, box-shadow 0.3s ease;
+                "
+                >
                 Record Payment
             </a>
 
@@ -63,34 +93,111 @@ Admin Dashboard
 
 <div class="stat-grid">
 
-    <article class="stat-card stat-purple">
+    <article 
+        class="stat-card stat-purple"
 
-        <div class="stat-label">
+        style="
+            background: linear-gradient(
+                135deg,
+                rgba(124, 58, 237, 0.85),
+                rgba(139, 92, 246, 0.85)
+            );
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
+            border: none;
+            "
+    >
+
+        <div 
+            class="stat-label"
+
+            style="
+                color: #ffffff;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                font-weight: bold;
+                font-size: 1rem;
+            "
+        >
             Active Students
         </div>
 
-        <div class="stat-value">
+        <div 
+            class="stat-value"
+            
+            style="
+                color: #ffffff;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                font-weight: bold;
+                font-size: 2rem;     
+            "
+            >
             {{ student_count|intcomma }}
         </div>
 
-        <div class="stat-caption">
+        <div 
+            class="stat-caption"
+            
+            style="
+                color: #ffffff;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                font-size: 0.9rem;
+                "
+            >
             Currently enrolled students
         </div>
 
     </article>
 
 
-    <article class="stat-card stat-blue">
+    <article 
+        class="stat-card stat-blue"
+        
+        style="
+            background: linear-gradient(
+                135deg,
+                rgba(59, 130, 246, 0.85),
+                rgba(96, 165, 250, 0.85)
+            );
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+            border: none;
+        "
+        >
 
-        <div class="stat-label">
+        <div 
+            class="stat-label"
+        
+        style="
+                color: #ffffff;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                font-weight: bold;
+                font-size: 1rem;
+                
+            "
+        >
             Teachers
         </div>
 
-        <div class="stat-value">
+        <div 
+            class="stat-value"
+            
+            style="
+                color: #ffffff;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                font-weight: bold;
+                font-size: 2rem;     
+            "
+            >
             {{ teacher_count|intcomma }}
         </div>
 
-        <div class="stat-caption">
+        <div 
+            class="stat-caption"
+            
+            style="
+                color: #ffffff;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                font-size: 0.9rem;
+                "
+            >
             Active teaching staff
         </div>
 
