@@ -13,6 +13,27 @@ My Classes
 
 {% block content %}
 
+<style>
+
+    .action-grid {
+        --brand-primary: #1560bd;
+        --brand-accent: #22c3d6;
+    }
+
+    .metadata-pill-primary {
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.1);
+        border-color: rgba(21, 96, 189, 0.24);
+    }
+
+    .metadata-pill-active {
+        color: #059669;
+        background: rgba(5, 150, 105, 0.1);
+        border-color: rgba(5, 150, 105, 0.24);
+    }
+
+</style>
+
 <div class="page-header">
 
     <div class="page-heading">
@@ -98,13 +119,13 @@ My Classes
 
                     {% if assignment.is_primary %}
 
-                        <span class="metadata-pill">
+                        <span class="metadata-pill metadata-pill-primary">
                             Primary Teacher
                         </span>
 
                     {% endif %}
 
-                    <span class="metadata-pill">
+                    <span class="metadata-pill metadata-pill-active">
                         Active
                     </span>
 

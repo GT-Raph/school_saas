@@ -6,102 +6,351 @@ Teacher Dashboard
 {% endblock %}
 
 
-{% block heading %}
+{% block mobile_title %}
 Teacher Dashboard
 {% endblock %}
 
 
 {% block content %}
 
-<h1>
-    {{ staff.full_name }}
-</h1>
+<style>
 
-<p>
-    {{ staff.job_title }}
-</p>
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #1560bd, #3a6ea5, #1ca9c9, #7cb9e8);    }
+
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
+
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
+
+    .panel-title p {
+        color: var(--text-secondary);
+    }
+
+    .table-toolbar .button {
+        border: none;
+        color: #ffffff;
+
+        background: #191971;
+        box-shadow: 0 6px 16px rgba(21, 96, 189, 0.32);
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .table-toolbar .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(21, 96, 189, 0.42);
+    }
+
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
+
+        font-size: 10px;
+    }
+
+    .data-table td {
+        font-size: 12px;
+    }
+
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .primary-pill {
+        display: inline-flex;
+        align-items: center;
+
+        padding: 4px 11px;
+
+        border-radius: 999px;
+
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .primary-pill-yes {
+        color: #059669;
+        background: rgba(5, 150, 105, 0.1);
+    }
+
+    .primary-pill-no {
+        color: var(--text-muted);
+        background: var(--surface-muted);
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .table-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .table-toolbar .button {
+            text-align: center;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Academic Year"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Academic Year"]::before {
+            display: none;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            {{ staff.full_name }}
+        </h1>
+
+        <p>
+            {{ staff.job_title }}
+        </p>
+
+    </div>
+
+</div>
 
 
-<h2>
-    My Teaching Assignments
-</h2>
+<section class="table-card">
 
-<a
-    class="button"
-    href="{% url 'portal:teacher-classes' %}"
->
-    Open My Classes
-</a>
+    <div class="table-toolbar">
 
-<table>
+        <div class="panel-title">
 
-    <thead>
+            <h2>
+                My Teaching Assignments
+            </h2>
 
-        <tr>
-            <th>
-                Academic Year
-            </th>
+            <p>
+                {{ assignments|length }}
+                assignment{{ assignments|length|pluralize }}
+            </p>
 
-            <th>
-                Class
-            </th>
+        </div>
 
-            <th>
-                Subject
-            </th>
+        <a
+            class="button"
+            href="{% url 'portal:teacher-classes' %}"
+        >
+            Open My Classes
+        </a>
 
-            <th>
-                Primary
-            </th>
-        </tr>
-
-    </thead>
+    </div>
 
 
-    <tbody>
+    <div class="table-scroll">
 
-        {% for assignment in assignments %}
+        <table class="data-table">
 
-            <tr>
+            <thead>
 
-                <td>
-                    {{ assignment.offering.academic_year.name }}
-                </td>
+                <tr>
+                    <th>Academic Year</th>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Primary</th>
+                </tr>
 
-                <td>
-                    {{ assignment.offering.class_section }}
-                </td>
+            </thead>
 
-                <td>
-                    {{ assignment.offering.subject.name }}
-                </td>
 
-                <td>
+            <tbody>
 
-                    {% if assignment.is_primary %}
-                        Yes
-                    {% else %}
-                        No
-                    {% endif %}
+                {% for assignment in assignments %}
 
-                </td>
+                    <tr>
 
-            </tr>
+                        <td data-label="Academic Year">
+                            {{ assignment.offering.academic_year.name }}
+                        </td>
 
-        {% empty %}
+                        <td data-label="Class">
+                            {{ assignment.offering.class_section }}
+                        </td>
 
-            <tr>
+                        <td data-label="Subject">
+                            {{ assignment.offering.subject.name }}
+                        </td>
 
-                <td colspan="4">
-                    No teaching assignments found.
-                </td>
+                        <td data-label="Primary">
 
-            </tr>
+                            {% if assignment.is_primary %}
 
-        {% endfor %}
+                                <span class="primary-pill primary-pill-yes">
+                                    Yes
+                                </span>
 
-    </tbody>
+                            {% else %}
 
-</table>
+                                <span class="primary-pill primary-pill-no">
+                                    No
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="4">
+
+                            <div class="empty-state">
+                                No teaching assignments found.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}
