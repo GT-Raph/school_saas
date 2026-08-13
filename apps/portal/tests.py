@@ -130,6 +130,157 @@ class PortalTenantSecurityTests(TestCase):
 
         self.client = Client()
 
+
+    #------------------------------------------------------------------
+    # CENTRAL LOGOUT
+    #------------------------------------------------------------------
+
+    def test_central_session_is_removed_after_handoff_created(
+        self,
+    ):
+        """
+        Once a school handoff has been generated, the central
+        authentication session must be destroyed.
+
+        Otherwise a user who logs out of their school would be
+        automatically logged back in by the central session.
+        """
+
+        central_client = Client()
+
+        response = central_client.post(
+            reverse(
+                "accounts:login"
+            ),
+            {
+                "username":
+                    self.user_a.username,
+
+                "password":
+                    self.password,
+            },
+            HTTP_HOST="login.localhost",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        self.assertIn(
+            SESSION_KEY,
+            central_client.session,
+        )
+
+        response = central_client.get(
+            reverse(
+                "accounts:post-login"
+            ),
+            HTTP_HOST="login.localhost",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertIn(
+            "token",
+            response.context,
+        )
+
+        # Central authentication must now be gone.
+        self.assertNotIn(
+            SESSION_KEY,
+            central_client.session,
+        )
+
+    def test_school_logout_does_not_automatically_log_user_back_in(
+        self,
+    ):
+        central_client = Client()
+
+        # ---------------------------------------------------------
+        # Central login
+        # ---------------------------------------------------------
+
+        central_client.post(
+            reverse(
+                "accounts:login"
+            ),
+            {
+                "username":
+                    self.user_a.username,
+
+                "password":
+                    self.password,
+            },
+            HTTP_HOST="login.localhost",
+        )
+
+        response = central_client.get(
+            reverse(
+                "accounts:post-login"
+            ),
+            HTTP_HOST="login.localhost",
+        )
+
+        token = response.context[
+            "token"
+        ]
+
+        # ---------------------------------------------------------
+        # Establish tenant session
+        # ---------------------------------------------------------
+
+        tenant_client = Client()
+
+        response = tenant_client.post(
+            reverse(
+                "accounts:handoff"
+            ),
+            {
+                "token": token,
+            },
+            HTTP_HOST="school-a.localhost",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        self.assertIn(
+            SESSION_KEY,
+            tenant_client.session,
+        )
+
+        # ---------------------------------------------------------
+        # Logout from tenant
+        # ---------------------------------------------------------
+
+        response = tenant_client.get(
+            reverse(
+                "accounts:logout"
+            ),
+            HTTP_HOST="school-a.localhost",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        self.assertNotIn(
+            SESSION_KEY,
+            tenant_client.session,
+        )
+
+        self.assertIn(
+            "login.localhost",
+            response.url,
+        )
+
     # -----------------------------------------------------------------
     # CENTRAL LOGIN -> CORRECT SCHOOL
     # -----------------------------------------------------------------
