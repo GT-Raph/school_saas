@@ -14,6 +14,315 @@ Student Accounts
 
 {% block content %}
 
+<style>
+
+    /* ---- Page heading ---- */
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    /* ---- Buttons ---- */
+
+    .page-actions .button,
+    .filter-form .button {
+        border: none;
+        color: #ffffff;
+
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+        box-shadow: 0 6px 16px rgba(21, 96, 189, 0.32);
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .page-actions .button:hover,
+    .filter-form .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(21, 96, 189, 0.42);
+    }
+
+    .page-actions .button-secondary {
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border: 1px solid rgba(21, 96, 189, 0.24);
+
+        box-shadow: none;
+    }
+
+    .page-actions .button-secondary:hover {
+        transform: translateY(-2px);
+
+        background: rgba(21, 96, 189, 0.14);
+        box-shadow: none;
+    }
+
+    .filter-form .button-muted {
+        color: var(--text-secondary);
+        background: var(--surface-muted);
+
+        border: 1px solid var(--border);
+
+        box-shadow: none;
+    }
+
+    .filter-form .button-muted:hover {
+        transform: none;
+        background: #eef1f6;
+        box-shadow: none;
+    }
+
+    /* ---- Filter input ---- */
+
+    .filter-form .field-control:focus {
+        border-color: #1560bd;
+
+        box-shadow: 0 0 0 4px rgba(21, 96, 189, 0.12);
+    }
+
+    /* ---- Table card ---- */
+
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
+
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
+
+    .panel-title p {
+        color: var(--text-secondary);
+    }
+
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
+    }
+
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .table-avatar {
+        background: linear-gradient(135deg, #1560bd, #1f75fe) !important;
+        font-size: 12px;
+    }
+
+    .table-link {
+        padding: 6px 13px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border-radius: 999px;
+
+        font-weight: 700;
+
+        transition: background 160ms ease;
+    }
+
+    .table-link:hover {
+        background: rgba(21, 96, 189, 0.16);
+        text-decoration: none;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .button,
+        .page-actions .button-secondary {
+            flex: 1;
+
+            text-align: center;
+        }
+
+        .table-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .filter-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-form .field-control,
+        .filter-form input,
+        .filter-form .button {
+            width: 100%;
+        }
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            font-size: 12px;
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Student"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Student"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] {
+            justify-content: center;
+
+            margin-top: 4px;
+            padding: 12px 0 4px;
+
+            border-top: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        .data-table td[data-label="Action"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] .table-link {
+            display: block;
+            width: 100%;
+
+            padding: 10px 0;
+
+            text-align: center;
+        }
+
+    }
+
+</style>
+
 <div class="page-header">
 
     <div class="page-heading">
@@ -125,7 +434,7 @@ Student Accounts
 
                     <tr>
 
-                        <td>
+                        <td data-label="Student">
 
                             <div class="table-person">
 
@@ -153,15 +462,15 @@ Student Accounts
 
                         </td>
 
-                        <td>
+                        <td data-label="Admission Number">
                             {{ row.enrollment.student.admission_number }}
                         </td>
 
-                        <td>
+                        <td data-label="Class">
                             {{ row.enrollment.class_section }}
                         </td>
 
-                        <td>
+                        <td data-label="Balance">
 
                             <strong>
 
@@ -173,7 +482,7 @@ Student Accounts
 
                         </td>
 
-                        <td>
+                        <td data-label="Action">
 
                             <a
                                 class="table-link"

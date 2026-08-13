@@ -1,94 +1,442 @@
 {% extends "portal/base.html" %}
 
-{% block heading %}
+{% block title %}
 Submitted Results
+{% endblock %}
+
+{% block mobile_title %}
+Results
 {% endblock %}
 
 {% block content %}
 
-<h1>
-    Results Awaiting Approval
-</h1>
+<style>
 
-<table>
+    /* ---- Page heading, matches Admin Dashboard treatment ---- */
 
-    <thead>
+    .page-heading h1 {
+        margin: 0;
 
-        <tr>
-            <th>Student</th>
-            <th>Class</th>
-            <th>Subject</th>
-            <th>Term</th>
-            <th>Score</th>
-            <th>Grade</th>
-            <th></th>
-        </tr>
+        text-transform: uppercase;
 
-    </thead>
+        color: var(--text-primary);
 
-    <tbody>
+        font-size: 1.5rem;
+        font-weight: 1000;
+        letter-spacing: 0.02em;
+    }
 
-        {% for result in results %}
+    .page-heading p {
+        margin: 7px 0 0;
 
-            <tr>
+        color: var(--text-secondary);
 
-                <td>
-                    {{ result.enrollment.student.full_name }}
-                </td>
+        font-size: 0.85rem;
+        font-weight: 400;
+    }
 
-                <td>
-                    {{ result.assessment_plan.offering.class_section }}
-                </td>
+    /* ---- Table card ---- */
 
-                <td>
-                    {{ result.assessment_plan.offering.subject.name }}
-                </td>
+    .table-card {
+        position: relative;
 
-                <td>
-                    {{ result.assessment_plan.term.name }}
-                </td>
+        overflow: hidden;
 
-                <td>
-                    {{ result.total_score }}
-                </td>
+        border-radius: 16px;
 
-                <td>
-                    {{ result.grade }}
-                </td>
+        transition: box-shadow 220ms ease;
+    }
 
-                <td>
+    .table-card::before {
+        position: absolute;
 
-                    <form
-                        method="post"
-                        action="{% url 'portal:academic-approve-result' result.id %}"
-                    >
+        top: 0;
+        left: 0;
+        right: 0;
 
-                        {% csrf_token %}
+        height: 3px;
 
-                        <button type="submit">
-                            Approve
-                        </button>
+        content: "";
 
-                    </form>
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
 
-                </td>
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
 
-            </tr>
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
 
-        {% empty %}
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
 
-            <tr>
+    .panel-title p {
+        color: var(--text-secondary);
+    }
 
-                <td colspan="7">
-                    No submitted results awaiting approval.
-                </td>
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
 
-            </tr>
+        font-size: 10px;
+    }
 
-        {% endfor %}
+    .data-table td {
+        font-size: 12px;
+    }
 
-    </tbody>
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
 
-</table>
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .table-avatar {
+        background: linear-gradient(150deg, #1560bd, #22c3d6) !important;
+        box-shadow: 0 4px 10px rgba(21, 96, 189, 0.3);
+    }
+
+    .table-person strong {
+        color: var(--text-primary);
+
+        font-size: 13px;
+    }
+
+    .result-score {
+        color: var(--text-primary);
+
+        font-weight: 800;
+    }
+
+    .grade-pill {
+        display: inline-flex;
+        align-items: center;
+
+        padding: 4px 11px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.1);
+
+        border-radius: 999px;
+
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .approve-btn {
+        padding: 7px 14px;
+
+        color: #ffffff;
+        background: linear-gradient(135deg, #059669, #22c55e);
+
+        border: none;
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        box-shadow: 0 5px 14px rgba(5, 150, 105, 0.3);
+
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .approve-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(5, 150, 105, 0.4);
+    }
+
+    .table-card .empty-state {
+        font-size: 13px;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .table-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Student"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Student"]::before {
+            display: none;
+        }
+
+        .table-person {
+            width: 100%;
+            font-size: 13px;
+        }
+
+        .data-table td[data-label="Action"] {
+            justify-content: center;
+
+            margin-top: 4px;
+            padding: 12px 0 4px;
+
+            border-top: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        .data-table td[data-label="Action"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] form {
+            width: 100%;
+        }
+
+        .data-table td[data-label="Action"] .approve-btn {
+            width: 100%;
+
+            padding: 10px 0;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            Results Awaiting Approval
+        </h1>
+
+        <p>
+            Review and approve submitted results before they are published.
+        </p>
+
+    </div>
+
+</div>
+
+
+<section class="table-card">
+
+    <div class="table-toolbar">
+
+        <div class="panel-title">
+
+            <h2>
+                Submitted Results
+            </h2>
+
+            <p>
+                {{ results|length }}
+                result{{ results|length|pluralize }}
+                awaiting approval
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="table-scroll">
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Term</th>
+                    <th>Score</th>
+                    <th>Grade</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for result in results %}
+
+                    <tr>
+
+                        <td data-label="Student">
+
+                            <div class="table-person">
+
+                                <div class="table-avatar">
+                                    {{ result.enrollment.student.full_name|first|upper }}
+                                </div>
+
+                                <strong>
+                                    {{ result.enrollment.student.full_name }}
+                                </strong>
+
+                            </div>
+
+                        </td>
+
+                        <td data-label="Class">
+                            {{ result.assessment_plan.offering.class_section }}
+                        </td>
+
+                        <td data-label="Subject">
+                            {{ result.assessment_plan.offering.subject.name }}
+                        </td>
+
+                        <td data-label="Term">
+                            {{ result.assessment_plan.term.name }}
+                        </td>
+
+                        <td data-label="Score">
+
+                            <span class="result-score">
+                                {{ result.total_score }}
+                            </span>
+
+                        </td>
+
+                        <td data-label="Grade">
+
+                            <span class="grade-pill">
+                                {{ result.grade }}
+                            </span>
+
+                        </td>
+
+                        <td data-label="Action">
+
+                            <form
+                                method="post"
+                                action="{% url 'portal:academic-approve-result' result.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    class="approve-btn"
+                                    type="submit"
+                                >
+                                    Approve
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="7">
+
+                            <div class="empty-state">
+                                No submitted results awaiting approval.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

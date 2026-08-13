@@ -6,41 +6,183 @@ Term Results
 
 {% block content %}
 
-<h1>
-    Term Result Management
-</h1>
+<style>
 
-<p>
-    Select a term and class.
-</p>
+    /* ---- Page heading ---- */
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    /* ---- Term cards ---- */
+
+    .term-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .term-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .term-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .term-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .term-card h3 {
+        margin: 0 0 14px;
+
+        color: var(--text-primary);
+
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .section-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .section-chip {
+        padding: 9px 16px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border: 1px solid rgba(21, 96, 189, 0.2);
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+
+        transition:
+            background 160ms ease,
+            transform 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .section-chip:hover {
+        transform: translateY(-2px);
+
+        background: rgba(21, 96, 189, 0.16);
+        box-shadow: 0 6px 14px rgba(21, 96, 189, 0.22);
+
+        text-decoration: none;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 620px) {
+
+        .section-grid {
+            flex-direction: column;
+        }
+
+        .section-chip {
+            text-align: center;
+        }
+
+    }
+
+</style>
+
+<div
+    class="page-heading"
+    style="margin-bottom: 22px;"
+>
+
+    <h1>
+        Term Result Management
+    </h1>
+
+    <p>
+        Select a term and class.
+    </p>
+
+</div>
 
 
-{% for term in terms %}
+<div class="term-list">
 
-    <div class="card">
+    {% for term in terms %}
 
-        <h3>
-            {{ term.academic_year.name }}
-            —
-            {{ term.name }}
-        </h3>
+        <div class="card term-card">
 
-        {% for section in sections %}
+            <h3>
+                {{ term.academic_year.name }}
+                —
+                {{ term.name }}
+            </h3>
 
-            <a
-                class="button button-secondary"
-                style="margin-bottom: 8px;"
-                href="{% url 'portal:academic-term-results' term.id section.id %}"
-            >
 
-                {{ section }}
+            <div class="section-grid">
 
-            </a>
+                {% for section in sections %}
 
-        {% endfor %}
+                    <a
+                        class="section-chip"
+                        href="{% url 'portal:academic-term-results' term.id section.id %}"
+                    >
 
-    </div>
+                        {{ section }}
 
-{% endfor %}
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="empty-state">
+            No terms have been configured yet.
+        </div>
+
+    {% endfor %}
+
+</div>
 
 {% endblock %}

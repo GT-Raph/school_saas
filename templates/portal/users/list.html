@@ -6,100 +6,511 @@ User Accounts
 
 {% block content %}
 
-<div
-    style="
+<style>
+
+    /* ---- Page heading ---- */
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    /* ---- Buttons ---- */
+
+    .page-actions .button {
+        border: none;
+        color: #ffffff;
+
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+        box-shadow: 0 6px 16px rgba(21, 96, 189, 0.32);
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .page-actions .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(21, 96, 189, 0.42);
+    }
+
+    /* ---- Table card ---- */
+
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
+
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
+
+    .panel-title p {
+        color: var(--text-secondary);
+    }
+
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
+
+        font-size: 10px;
+    }
+
+    .data-table td {
+        font-size: 12px;
+    }
+
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .user-person {
         display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    "
->
+        align-items: center;
+        gap: 10px;
+    }
 
-    <h1>
-        School User Accounts
-    </h1>
+    .user-avatar {
+        width: 34px;
+        height: 34px;
 
-    <a
-        class="button"
-        href="{% url 'portal:school-user-create' %}"
-    >
-        + Create Account
-    </a>
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #ffffff;
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+
+        border-radius: 50%;
+
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .user-person-copy {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-person-copy strong {
+        color: var(--text-primary);
+
+        font-size: 12px;
+    }
+
+    .user-person-copy span {
+        margin-top: 2px;
+
+        color: var(--text-muted);
+
+        font-size: 10px;
+    }
+
+    .role-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .role-pill {
+        padding: 4px 10px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.1);
+
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .role-pill-empty {
+        color: var(--text-muted);
+
+        font-size: 12px;
+    }
+
+    .table-link {
+        padding: 6px 13px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border-radius: 999px;
+
+        font-weight: 700;
+        text-decoration: none;
+
+        transition: background 160ms ease;
+    }
+
+    .table-link:hover {
+        background: rgba(21, 96, 189, 0.16);
+        text-decoration: none;
+    }
+
+    .table-card .empty-state {
+        font-size: 13px;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .button {
+            display: block;
+
+            text-align: center;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="User"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="User"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Roles"] {
+            justify-content: flex-start;
+        }
+
+        .role-pills {
+            justify-content: flex-end;
+        }
+
+        .data-table td[data-label="Action"] {
+            justify-content: center;
+
+            margin-top: 4px;
+            padding: 12px 0 4px;
+
+            border-top: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        .data-table td[data-label="Action"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] .table-link {
+            display: block;
+            width: 100%;
+
+            padding: 10px 0;
+
+            text-align: center;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            School User Accounts
+        </h1>
+
+        <p>
+            Manage staff logins, usernames, and assigned roles.
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
+
+        <a
+            class="button"
+            href="{% url 'portal:school-user-create' %}"
+        >
+            + Create Account
+        </a>
+
+    </div>
 
 </div>
 
 
-<table>
+<section class="table-card">
 
-    <thead>
+    <div class="table-toolbar">
 
-        <tr>
-            <th>User</th>
-            <th>Username</th>
-            <th>Roles</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
+        <div class="panel-title">
 
-    </thead>
+            <h2>
+                Account Directory
+            </h2>
 
-    <tbody>
+            <p>
+                {{ memberships|length }}
+                account{{ memberships|length|pluralize }}
+            </p>
 
-        {% for membership in memberships %}
+        </div>
 
-            <tr>
+    </div>
 
-                <td>
-                    {{ membership.user.get_full_name|default:membership.user.username }}
-                </td>
 
-                <td>
-                    {{ membership.user.username }}
-                </td>
+    <div class="table-scroll">
 
-                <td>
+        <table class="data-table">
 
-                    {% for role in membership.roles.all %}
+            <thead>
 
-                        {{ role.name }}
+                <tr>
+                    <th>User</th>
+                    <th>Username</th>
+                    <th>Roles</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
 
-                        {% if not forloop.last %}
-                            ,
-                        {% endif %}
+            </thead>
 
-                    {% empty %}
+            <tbody>
 
-                        No role
+                {% for membership in memberships %}
 
-                    {% endfor %}
+                    <tr>
 
-                </td>
+                        <td data-label="User">
 
-                <td>
+                            <div class="user-person">
 
-                    {% if membership.is_active %}
-                        Active
-                    {% else %}
-                        Disabled
-                    {% endif %}
+                                <div class="user-avatar">
+                                    {{ membership.user.get_full_name|default:membership.user.username|first|upper }}
+                                </div>
 
-                </td>
+                                <div class="user-person-copy">
 
-                <td>
+                                    <strong>
+                                        {{ membership.user.get_full_name|default:membership.user.username }}
+                                    </strong>
 
-                    <a
-                        href="{% url 'portal:school-user-edit' membership.id %}"
-                    >
-                        Manage
-                    </a>
+                                    <span>
+                                        {{ membership.user.username }}
+                                    </span>
 
-                </td>
+                                </div>
 
-            </tr>
+                            </div>
 
-        {% endfor %}
+                        </td>
 
-    </tbody>
+                        <td data-label="Username">
+                            {{ membership.user.username }}
+                        </td>
 
-</table>
+                        <td data-label="Roles">
+
+                            <div class="role-pills">
+
+                                {% for role in membership.roles.all %}
+
+                                    <span class="role-pill">
+                                        {{ role.name }}
+                                    </span>
+
+                                {% empty %}
+
+                                    <span class="role-pill-empty">
+                                        No role
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </td>
+
+                        <td data-label="Status">
+
+                            {% if membership.is_active %}
+
+                                <span class="status-badge status-active">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-inactive">
+                                    Disabled
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td data-label="Action">
+
+                            <a
+                                class="table-link"
+                                href="{% url 'portal:school-user-edit' membership.id %}"
+                            >
+                                Manage
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+                                No user accounts found.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

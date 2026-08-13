@@ -8,19 +8,281 @@ Parents & Guardians
 
 {% block content %}
 
-<div
-    style="
+<style>
+
+    /* ---- Page heading ---- */
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    /* ---- Buttons ---- */
+
+    .page-actions .button {
+        border: none;
+        color: #ffffff;
+
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+        box-shadow: 0 8px 18px rgba(21, 96, 189, 0.34);
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+
+        font-size: 0.8rem;
+    }
+
+    .page-actions .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(21, 96, 189, 0.46);
+    }
+
+    .page-actions .button-secondary {
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border: 1px solid rgba(21, 96, 189, 0.24);
+
+        box-shadow: none;
+
+        transition:
+            transform 180ms ease,
+            background 180ms ease;
+    }
+
+    .page-actions .button-secondary:hover {
+        transform: translateY(-2px);
+
+        background: rgba(21, 96, 189, 0.14);
+        box-shadow: none;
+    }
+
+    /* ---- Table card ---- */
+
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
+
+    .panel-title h2 {
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .panel-title p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
+    }
+
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .guardian-person {
         display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    "
->
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+    }
 
-    <h1>
-        Parents & Guardians
-    </h1>
+    .guardian-avatar {
+        width: 34px;
+        height: 34px;
 
-    <div>
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #ffffff;
+        background: linear-gradient(150deg, #1560bd, #22c3d6);
+
+        border-radius: 50%;
+
+        font-size: 15px;
+        font-weight: 800;
+
+        box-shadow: 0 4px 10px rgba(21, 96, 189, 0.3);
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .button,
+        .page-actions .button-secondary {
+            flex: 1;
+
+            text-align: center;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            font-size: 15px;
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Name"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Name"]::before {
+            display: none;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            Parents & Guardians
+        </h1>
+
+        <p>
+            Manage guardian contacts and student links.
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
 
         <a
             class="button"
@@ -41,75 +303,157 @@ Parents & Guardians
 </div>
 
 
-<table>
+<section class="table-card">
 
-    <thead>
+    <div class="table-toolbar">
 
-        <tr>
+        <div class="panel-title">
 
-            <th>
-                Name
-            </th>
+            <h2>
+                Guardian Directory
+            </h2>
 
-            <th>
-                Phone
-            </th>
+            <p>
+                {{ guardians|length }}
+                guardian{{ guardians|length|pluralize }}
+            </p>
 
-            <th>
-                Email
-            </th>
+        </div>
 
-            <th>
-                Status
-            </th>
-
-        </tr>
-
-    </thead>
+    </div>
 
 
-    <tbody>
+    <div class="table-scroll">
 
-        {% for guardian in guardians %}
+        <table class="data-table">
 
-            <tr>
+            <thead>
 
-                <td>
-                    {{ guardian.full_name }}
-                </td>
+                <tr>
 
-                <td>
-                    {{ guardian.phone_number }}
-                </td>
+                    <th
+                        style="
+                            font-size: 10px;
+                        "
+                    >
+                        Name
+                    </th>
 
-                <td>
-                    {{ guardian.email }}
-                </td>
+                    <th
+                        style="
+                            font-size: 10px;
+                        "
+                    >
+                        Phone
+                    </th>
 
-                <td>
+                    <th
+                        style="
+                            font-size: 10px;
+                            "
+                    >
+                        Email
+                    </th>
 
-                    {% if guardian.is_active %}
-                        Active
-                    {% else %}
-                        Inactive
-                    {% endif %}
+                    <th
+                        style="
+                            font-size: 10px;
+                        "
+                    >
+                        Status
+                    </th>
 
-                </td>
+                </tr>
 
-            </tr>
+            </thead>
 
-        {% empty %}
 
-            <tr>
-                <td colspan="4">
-                    No guardians found.
-                </td>
-            </tr>
+            <tbody>
 
-        {% endfor %}
+                {% for guardian in guardians %}
 
-    </tbody>
+                    <tr>
 
-</table>
+                        <td data-label="Name">
+
+                            <div class="guardian-person">
+
+                                <div class="guardian-avatar">
+                                    {{ guardian.full_name|first|upper }}
+                                </div>
+
+                                <strong>
+                                    {{ guardian.full_name }}
+                                </strong>
+
+                            </div>
+
+                        </td>
+
+                        <td data-label="Phone"
+                         style="
+                             font-size: 15px;
+                        "
+                        >
+                            {{ guardian.phone_number|default:"—" }}
+                        </td>
+
+                        <td data-label="Email"
+                        
+                            style="
+                                font-size: 15px;
+                        "
+
+                        >
+                            {{ guardian.email|default:"—" }}
+                        </td>
+
+                        <td data-label="Status"
+                            style="
+                                font-size: 15px;
+                        "
+                        >
+
+                            {% if guardian.is_active %}
+
+                                <span class="status-badge status-active">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-inactive">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="4">
+
+                            <div class="empty-state">
+                                No guardians found.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

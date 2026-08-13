@@ -43,6 +43,55 @@
         }
     </style>
 
+    <style>
+
+        /* ---- Sidebar / nav: locked to the design-system palette,
+               regardless of per-school brand color above ---- */
+
+        .sidebar {
+            --brand-primary: #1560bd;
+            --brand-accent: #22c3d6;
+        }
+
+        .topbar {
+            --brand-primary: #1560bd;
+            --brand-accent: #22c3d6;
+        }
+
+        .brand-mark {
+            background: linear-gradient(150deg, #191971, #2f2fa8 55%, #3b3bc4);
+        }
+
+        .nav-link:hover {
+            background: rgba(21, 96, 189, 0.06);
+        }
+
+        .nav-icon svg {
+            width: 15px;
+            height: 15px;
+
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .topbar-icon-button {
+            transition:
+                color 160ms ease,
+                border-color 160ms ease,
+                background 160ms ease;
+        }
+
+        .topbar-icon-button:hover {
+            color: #1560bd;
+            background: rgba(21, 96, 189, 0.06);
+            border-color: rgba(21, 96, 189, 0.3);
+        }
+
+    </style>
+
     {% block extra_head %}
     {% endblock %}
 
@@ -116,7 +165,12 @@
             >
 
                 <span class="nav-icon">
-                    DB
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                    </svg>
                 </span>
 
                 <span>
@@ -143,7 +197,10 @@
                 >
 
                     <span class="nav-icon">
-                        CL
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15z"></path>
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -177,7 +234,10 @@
                 >
 
                     <span class="nav-icon">
-                        ST
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="8" r="3.5"></circle>
+                            <path d="M4.5 20c0-4 3.5-6.5 7.5-6.5s7.5 2.5 7.5 6.5"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -202,7 +262,12 @@
                 >
 
                     <span class="nav-icon">
-                        PG
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="8.5" cy="8" r="3"></circle>
+                            <circle cx="16.5" cy="8.5" r="2.4"></circle>
+                            <path d="M3 20c0-3.5 2.7-6 5.5-6s5.5 2.5 5.5 6"></path>
+                            <path d="M14.3 20c.2-2.8 1.9-4.7 4.2-4.7 2.3 0 4 2.2 4 4.7"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -227,7 +292,11 @@
                 >
 
                     <span class="nav-icon">
-                        SF
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="4" y="4" width="16" height="16" rx="2.5"></rect>
+                            <circle cx="12" cy="10" r="2.3"></circle>
+                            <path d="M7.5 17c.6-2.2 2.3-3.4 4.5-3.4s3.9 1.2 4.5 3.4"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -256,7 +325,11 @@
                 >
 
                     <span class="nav-icon">
-                        RS
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="5" y="4" width="14" height="17" rx="2"></rect>
+                            <path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1z"></path>
+                            <path d="M9 13l2 2 4-4.5"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -277,7 +350,11 @@
                 >
 
                     <span class="nav-icon">
-                        TR
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 3h7l4 4v14H7z"></path>
+                            <path d="M14 3v4h4"></path>
+                            <path d="M9.5 13h5M9.5 16.5h5"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -302,7 +379,10 @@
                 >
 
                     <span class="nav-icon">
-                        PR
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 17l5.5-5.5 3.5 3.5L21 7"></path>
+                            <path d="M15.5 7H21v5.5"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -331,7 +411,11 @@
                 >
 
                     <span class="nav-icon">
-                        FN
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3.5" y="6.5" width="17" height="12" rx="2"></rect>
+                            <path d="M3.5 10.5H20"></path>
+                            <circle cx="16.5" cy="14.2" r="1.4"></circle>
+                        </svg>
                     </span>
 
                     <span>
@@ -355,7 +439,9 @@
                 >
 
                     <span class="nav-icon">
-                        CH
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 20s-7.5-4.6-9.3-9.4C1.6 7.3 3.6 4.5 6.6 4.5c1.8 0 3.4 1 4.4 2.5 1-1.5 2.6-2.5 4.4-2.5 3 0 5 2.8 3.9 6.1C19.5 15.4 12 20 12 20z"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -379,7 +465,10 @@
                 >
 
                     <span class="nav-icon">
-                        MR
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 3h7l4 4v14H7z"></path>
+                            <path d="M14 3v4h4"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -413,7 +502,12 @@
                 >
 
                     <span class="nav-icon">
-                        UA
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="7.5" cy="15.5" r="3.3"></circle>
+                            <path d="M10 13l8.5-8.5"></path>
+                            <path d="M15 6l2.5 2.5"></path>
+                            <path d="M17.5 3.5L21 7"></path>
+                        </svg>
                     </span>
 
                     <span>
@@ -438,7 +532,10 @@
                 >
 
                     <span class="nav-icon">
-                        SE
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 13a7.97 7.97 0 000-2l2-1.5-2-3.5-2.4.6a8 8 0 00-1.7-1L14.7 3h-4l-.6 2.6a8 8 0 00-1.7 1l-2.4-.6-2 3.5L5.6 11a7.97 7.97 0 000 2l-2 1.5 2 3.5 2.4-.6a8 8 0 001.7 1l.6 2.6h4l.6-2.6a8 8 0 001.7-1l2.4.6 2-3.5-2-1.5z"></path>
+                        </svg>
                     </span>
 
                     <span>

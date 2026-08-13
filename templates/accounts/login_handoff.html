@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,30 +7,183 @@
 
     <meta charset="UTF-8">
 
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
     <title>
         Opening School Portal
     </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 100vh;
+            padding: 24px;
+
+            font-family:
+                Inter,
+                ui-sans-serif,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background-image: 
+                url("{% static 'assets/school-building.png' %}");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .handoff-card {
+            position: relative;
+
+            width: 100%;
+            max-width: 440px;
+
+            overflow: hidden;
+
+            text-align: center;
+
+            background: rgba(255, 255, 255, 0.94);
+
+            border-radius: 18px;
+
+            box-shadow: 0 20px 48px rgba(21, 40, 80, 0.35);
+
+            padding: 44px 36px;
+        }
+
+        .handoff-card::before {
+            position: absolute;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 3px;
+
+            content: "";
+
+            background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+        }
+
+        .handoff-spinner {
+            width: 34px;
+            height: 34px;
+
+            margin: 0 auto 22px;
+
+            border: 3px solid rgba(21, 96, 189, 0.15);
+            border-top-color: #1560bd;
+            border-radius: 50%;
+
+            animation: handoff-spin 800ms linear infinite;
+        }
+
+        @keyframes handoff-spin {
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .handoff-spinner {
+                animation: none;
+            }
+
+        }
+
+        .handoff-card h1 {
+            margin: 0 0 8px;
+
+            color: #191971;
+
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .handoff-card p {
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 0.9rem;
+        }
+
+        #handoffForm {
+            margin-top: 20px;
+        }
+
+        .handoff-continue {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 11px 24px;
+
+            color: #ffffff;
+            background: linear-gradient(135deg, #1560bd, #1f75fe);
+
+            border: none;
+            border-radius: 999px;
+
+            font-size: 0.9rem;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow: 0 8px 20px rgba(21, 96, 189, 0.34);
+
+            transition:
+                transform 160ms ease,
+                box-shadow 160ms ease;
+        }
+
+        .handoff-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(21, 96, 189, 0.44);
+        }
+
+    </style>
 
 </head>
 
 
 <body>
 
-<div
-    style="
-        max-width: 500px;
-        margin: 100px auto;
-        text-align: center;
-        font-family: Arial, sans-serif;
-    "
->
+<div class="handoff-card">
+
+    <div class="handoff-spinner"></div>
 
     <h1>
         Opening {{ school.name }}
     </h1>
 
     <p>
-        Please wait...
+        Please wait while we sign you in...
     </p>
 
 
@@ -46,7 +201,10 @@
 
         <noscript>
 
-            <button type="submit">
+            <button
+                class="handoff-continue"
+                type="submit"
+            >
                 Continue
             </button>
 

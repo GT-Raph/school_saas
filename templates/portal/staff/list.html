@@ -8,113 +8,520 @@ Staff Management
 
 {% block content %}
 
-<div
-    style="
+<style>
+
+    /* ---- Page heading ---- */
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    /* ---- Buttons ---- */
+
+    .page-actions .button {
+        border: none;
+        color: #ffffff;
+
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+        box-shadow: 0 8px 18px rgba(21, 96, 189, 0.34);
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .page-actions .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(21, 96, 189, 0.46);
+    }
+
+    /* ---- Table card ---- */
+
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
+
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
+
+    .panel-title p {
+        color: var(--text-secondary);
+    }
+
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
+    }
+
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .staff-person {
         display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    "
->
+        align-items: center;
+        gap: 10px;
+    }
 
-    <h1>
-        Staff
-    </h1>
+    .staff-avatar {
+        width: 34px;
+        height: 34px;
 
-    <a
-        class="button"
-        href="{% url 'portal:staff-create' %}"
-    >
-        + Add Staff
-    </a>
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #ffffff;
+        background: linear-gradient(150deg, #1560bd, #22c3d6);
+
+        border-radius: 50%;
+
+        font-size: 10px;
+        font-weight: 800;
+
+        box-shadow: 0 4px 10px rgba(21, 96, 189, 0.3);
+    }
+
+    .staff-person-copy {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .staff-person-copy strong {
+        color: var(--text-primary);
+
+        font-size: 12px;
+    }
+
+    .staff-person-copy span {
+        margin-top: 2px;
+
+        color: var(--text-muted);
+
+        font-size: 10px;
+    }
+
+    .table-link {
+        padding: 6px 13px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border-radius: 999px;
+
+        font-weight: 700;
+        text-decoration: none;
+
+        transition: background 160ms ease;
+    }
+
+    .table-link:hover {
+        background: rgba(21, 96, 189, 0.16);
+        text-decoration: none;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .button {
+            display: block;
+
+            text-align: center;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            font-size: 12px;
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Name"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Name"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] {
+            justify-content: center;
+
+            margin-top: 4px;
+            padding: 12px 0 4px;
+
+            border-top: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        .data-table td[data-label="Action"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] .table-link {
+            display: block;
+            width: 100%;
+
+            padding: 10px 0;
+
+            text-align: center;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            Staff
+        </h1>
+
+        <p>
+            Manage employee records and assignments.
+        </p>
+
+    </div>
+
+
+    <div class="page-actions">
+
+        <a
+            class="button"
+            href="{% url 'portal:staff-create' %}"
+        >
+            + Add Staff
+        </a>
+
+    </div>
 
 </div>
 
 
-<table>
+<section class="table-card">
 
-    <thead>
+    <div class="table-toolbar">
 
-        <tr>
+        <div class="panel-title">
 
-            <th>
-                Employee No.
-            </th>
+            <h2>
+                Staff Directory
+            </h2>
 
-            <th>
-                Name
-            </th>
+            <p>
+                {{ staff_members|length }}
+                staff record{{ staff_members|length|pluralize }}
+            </p>
 
-            <th>
-                Position
-            </th>
+        </div>
 
-            <th>
-                Department
-            </th>
-
-            <th>
-                Status
-            </th>
-
-            <th>
-                Action
-            </th>
-
-        </tr>
-
-    </thead>
+    </div>
 
 
-    <tbody>
+    <div class="table-scroll">
 
-        {% for staff in staff_members %}
+        <table class="data-table">
 
-            <tr>
+            <thead>
 
-                <td>
-                    {{ staff.employee_number }}
-                </td>
+                <tr>
 
-                <td>
-                    {{ staff.full_name }}
-                </td>
-
-                <td>
-                    {{ staff.job_title }}
-                </td>
-
-                <td>
-                    {{ staff.department }}
-                </td>
-
-                <td>
-                    {{ staff.get_employment_status_display }}
-                </td>
-
-                <td>
-
-                    <a
-                        href="{% url 'portal:staff-edit' staff.id %}"
+                    <th
+                        style="
+                        font-size: 10px;
+                    "
                     >
-                        Edit
-                    </a>
+                        Employee No.
+                    </th>
 
-                </td>
+                    <th
+                        style="
+                        font-size: 10px;
+                    "
+                    >
+                        Name
+                    </th>
 
-            </tr>
+                    <th
+                        style="
+                        font-size: 10px;
+                    "
+                    >
+                        Position
+                    </th>
 
-        {% empty %}
+                    <th
+                        style="
+                        font-size: 10px;
+                    "
+                    >
+                        Department
+                    </th>
 
-            <tr>
-                <td colspan="6">
-                    No staff records found.
-                </td>
-            </tr>
+                    <th
+                        style="
+                        font-size: 10px;
+                    "
+                    >
+                        Status
+                    </th>
 
-        {% endfor %}
+                    <th
+                        style="
+                        font-size: 10px;
+                    "
+                    >
+                        Action
+                    </th>
 
-    </tbody>
+                </tr>
 
-</table>
+            </thead>
+
+
+            <tbody>
+
+                {% for staff in staff_members %}
+
+                    <tr>
+
+                        <td data-label="Employee No."
+                            style="
+                               font-size: 13px;
+                            "
+                        >
+                            {{ staff.employee_number }}
+                        </td>
+
+                        <td data-label="Name"
+                            style="
+                                font-size: 13px;
+                            "
+                        >
+
+                            <div class="staff-person">
+
+                                <div class="staff-avatar">
+                                    {{ staff.full_name|first|upper }}
+                                </div>
+
+                                <div class="staff-person-copy">
+
+                                    <strong>
+                                        {{ staff.full_name }}
+                                    </strong>
+
+                                    <span>
+                                        {{ staff.employee_number }}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td data-label="Position"
+                            style="
+                                font-size: 13px;
+                            "
+                        >
+                            {{ staff.job_title }}
+                        </td>
+
+                        <td data-label="Department"
+                            style="
+                                font-size: 13px;
+                            "
+                        >
+                            {{ staff.department|default:"—" }}
+                        </td>
+
+                        <td data-label="Status"
+                            style="
+                                font-size: 13px;"
+                            >
+
+                            <span
+                                class="
+                                    status-badge
+                                    status-{{ staff.employment_status }}
+                                "
+                            >
+                                {{ staff.get_employment_status_display }}
+                            </span>
+
+                        </td>
+
+                        <td data-label="Action"
+                            style="
+                                font-size: 13px;">
+
+                            <a
+                                class="table-link"
+                                href="{% url 'portal:staff-edit' staff.id %}"
+                            >
+                                Edit
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="6">
+
+                            <div class="empty-state">
+                                No staff records found.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

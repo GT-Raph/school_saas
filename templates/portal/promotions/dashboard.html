@@ -6,76 +6,440 @@ Promotion Management
 
 {% block content %}
 
-<h1>
-    Promotion Policies
-</h1>
+<style>
 
-<table>
+    /* ---- Page heading ---- */
 
-    <thead>
+    .page-heading h1 {
+        margin: 0;
 
-        <tr>
-            <th>Academic Year</th>
-            <th>Class</th>
-            <th>Policy</th>
-            <th>Minimum Average</th>
-            <th></th>
-        </tr>
+        text-transform: uppercase;
 
-    </thead>
+        color: var(--text-primary);
 
-    <tbody>
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
 
-        {% for policy in policies %}
+    .page-heading p {
+        margin: 7px 0 0;
 
-            <tr>
+        color: var(--text-secondary);
 
-                <td>
-                    {{ policy.academic_year.name }}
-                </td>
+        font-size: 0.85rem;
+        font-weight: 400;
+    }
 
-                <td>
-                    {{ policy.class_level.name }}
-                </td>
+    /* ---- Table card ---- */
 
-                <td>
-                    {{ policy.name }}
-                </td>
+    .table-card {
+        position: relative;
 
-                <td>
-                    {{ policy.minimum_overall_average }}%
-                </td>
+        overflow: hidden;
 
-                <td>
+        border-radius: 16px;
 
-                    <form
-                        method="post"
-                        action="{% url 'portal:promotion-run-policy' policy.id %}"
-                        style="display:inline;"
-                    >
+        transition: box-shadow 220ms ease;
+    }
 
-                        {% csrf_token %}
+    .table-card::before {
+        position: absolute;
 
-                        <button type="submit">
-                            Run Evaluation
-                        </button>
+        top: 0;
+        left: 0;
+        right: 0;
 
-                    </form>
+        height: 3px;
 
-                    <a
-                        href="{% url 'portal:promotion-policy-results' policy.id %}"
-                    >
-                        View Results
-                    </a>
+        content: "";
 
-                </td>
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
 
-            </tr>
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
 
-        {% endfor %}
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
 
-    </tbody>
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
 
-</table>
+    .panel-title p {
+        color: var(--text-secondary);
+    }
+
+    .data-table th {
+        background: rgba(21, 96, 189, 0.045);
+
+        font-size: 10px;
+    }
+
+    .data-table td {
+        font-size: 12px;
+    }
+
+    .data-table tbody tr {
+        transition: background 160ms ease;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(21, 96, 189, 0.04);
+    }
+
+    .policy-name {
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    .average-pill {
+        display: inline-flex;
+        align-items: center;
+
+        padding: 4px 11px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.1);
+
+        border-radius: 999px;
+
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .policy-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .run-btn {
+        padding: 7px 14px;
+
+        color: #ffffff;
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+
+        border: none;
+        border-radius: 999px;
+
+        font-size: 12px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        box-shadow: 0 6px 16px rgba(21, 96, 189, 0.32);
+
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .run-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(21, 96, 189, 0.4);
+    }
+
+    .table-link {
+        padding: 6px 13px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border-radius: 999px;
+
+        font-weight: 700;
+        text-decoration: none;
+
+        transition: background 160ms ease;
+    }
+
+    .table-link:hover {
+        background: rgba(21, 96, 189, 0.16);
+        text-decoration: none;
+    }
+
+    .table-card .empty-state {
+        font-size: 13px;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 860px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .table-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+    }
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Policy"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Policy"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Action"] {
+            justify-content: center;
+
+            margin-top: 4px;
+            padding: 12px 0 4px;
+
+            border-top: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        .data-table td[data-label="Action"]::before {
+            display: none;
+        }
+
+        .policy-actions {
+            width: 100%;
+
+            flex-direction: column;
+        }
+
+        .policy-actions form,
+        .policy-actions .run-btn,
+        .policy-actions .table-link {
+            width: 100%;
+
+            text-align: center;
+        }
+
+        .policy-actions .run-btn {
+            padding: 10px 0;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            Promotion Policies
+        </h1>
+
+        <p>
+            Configure and run end-of-year promotion evaluations.
+        </p>
+
+    </div>
+
+</div>
+
+
+<section class="table-card">
+
+    <div class="table-toolbar">
+
+        <div class="panel-title">
+
+            <h2>
+                Promotion Policies
+            </h2>
+
+            <p>
+                {{ policies|length }}
+                polic{{ policies|length|pluralize:"y,ies" }}
+                configured
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="table-scroll">
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+                    <th>Academic Year</th>
+                    <th>Class</th>
+                    <th>Policy</th>
+                    <th>Minimum Average</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for policy in policies %}
+
+                    <tr>
+
+                        <td data-label="Academic Year">
+                            {{ policy.academic_year.name }}
+                        </td>
+
+                        <td data-label="Class">
+                            {{ policy.class_level.name }}
+                        </td>
+
+                        <td data-label="Policy">
+
+                            <span class="policy-name">
+                                {{ policy.name }}
+                            </span>
+
+                        </td>
+
+                        <td data-label="Minimum Average">
+
+                            <span class="average-pill">
+                                {{ policy.minimum_overall_average }}%
+                            </span>
+
+                        </td>
+
+                        <td data-label="Action">
+
+                            <div class="policy-actions">
+
+                                <form
+                                    method="post"
+                                    action="{% url 'portal:promotion-run-policy' policy.id %}"
+                                    style="display:inline;"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <button
+                                        class="run-btn"
+                                        type="submit"
+                                    >
+                                        Run Evaluation
+                                    </button>
+
+                                </form>
+
+                                <a
+                                    class="table-link"
+                                    href="{% url 'portal:promotion-policy-results' policy.id %}"
+                                >
+                                    View Results
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+                                No promotion policies configured yet.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

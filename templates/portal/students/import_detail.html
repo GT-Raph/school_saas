@@ -8,17 +8,335 @@ Student Import Review
 
 {% block content %}
 
-<h1>
-    Import Preview
-</h1>
+<style>
+
+    /* ---- Page heading ---- */
+
+    .page-heading h1 {
+        margin: 0 0 20px;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    /* ---- Summary cards ---- */
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+
+        gap: 14px;
+
+        margin-bottom: 20px;
+    }
+
+    .cards .card {
+        position: relative;
+
+        overflow: hidden;
+
+        min-height: 96px;
+        padding: 18px 20px;
+
+        color: #ffffff;
+
+        border: none;
+    }
+
+    .cards .card > div:first-child {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+        opacity: 0.95;
+
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .cards .number {
+        margin-top: 8px;
+
+        font-size: 1.7rem;
+        font-weight: 850;
+        letter-spacing: -0.02em;
+
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-total {
+        background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        box-shadow: 0 10px 22px rgba(124, 58, 237, 0.3);
+    }
+
+    .card-valid {
+        background: linear-gradient(135deg, #059669, #22c55e);
+        box-shadow: 0 10px 22px rgba(5, 150, 105, 0.3);
+    }
+
+    .card-invalid {
+        background: linear-gradient(135deg, #dc2626, #f87171);
+        box-shadow: 0 10px 22px rgba(220, 38, 38, 0.3);
+    }
+
+    .card-usage {
+        background: linear-gradient(135deg, #2563eb, #60a5fa);
+        box-shadow: 0 10px 22px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ---- Batch meta ---- */
+
+    .batch-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+
+        margin-bottom: 20px;
+    }
+
+    .batch-meta p {
+        margin: 0;
+
+        color: var(--text-secondary);
+
+        font-size: 12px;
+    }
+
+    .batch-meta strong {
+        color: var(--text-primary);
+    }
+
+    /* ---- Confirm / error banner ---- */
+
+    .confirm-form {
+        margin-bottom: 22px;
+    }
+
+    .confirm-btn {
+        padding: 11px 22px;
+
+        color: #ffffff;
+        background: linear-gradient(135deg, #059669, #22c55e);
+
+        border: none;
+        border-radius: 10px;
+
+        font-size: 13px;
+        font-weight: 750;
+
+        cursor: pointer;
+
+        box-shadow: 0 8px 18px rgba(5, 150, 105, 0.32);
+
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .confirm-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 11px 22px rgba(5, 150, 105, 0.42);
+    }
+
+    .import-error-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+
+        margin-bottom: 22px;
+        padding: 16px 18px;
+
+        color: #a63737;
+        background: #fff0f0;
+
+        border: 1px solid #ffd5d5;
+        border-radius: 12px;
+
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .import-error-banner strong {
+        display: block;
+
+        margin-bottom: 2px;
+
+        font-size: 13px;
+    }
+
+    /* ---- Table ---- */
+
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+    }
+
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+    }
+
+    .data-table th {
+        background: rgba(124, 58, 237, 0.04);
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(124, 58, 237, 0.035);
+    }
+
+    .row-status-valid {
+        color: #137a4a;
+        background: #e8f8ef;
+    }
+
+    .row-status-invalid {
+        color: #b33b3b;
+        background: #ffeaea;
+    }
+
+    .row-error-list {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .row-error-list div {
+        color: #b33b3b;
+
+        font-size: 11px;
+    }
+
+    /* =========================================================
+       Responsive
+       ========================================================= */
+
+    @media (max-width: 620px) {
+
+        .table-scroll {
+            overflow-x: visible;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table,
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .data-table tbody tr {
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+
+            box-shadow: var(--shadow-card);
+        }
+
+        .data-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--surface);
+        }
+
+        .data-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed var(--border);
+
+            font-size: 12px;
+
+            text-align: right;
+        }
+
+        .data-table td:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td::before {
+            flex-shrink: 0;
+
+            content: attr(data-label);
+
+            color: var(--text-muted);
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .data-table td[data-label="Student"] {
+            justify-content: flex-start;
+
+            text-align: left;
+        }
+
+        .data-table td[data-label="Student"]::before {
+            display: none;
+        }
+
+        .data-table td[data-label="Errors"] {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .row-error-list {
+            align-items: flex-end;
+
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+<div class="page-heading">
+
+    <h1>
+        Import Preview
+    </h1>
+
+</div>
 
 
 <div class="cards">
 
-    <div class="card">
+    <div class="card card-total">
 
         <div>
-            Total Rows
+            📊 Total Rows
         </div>
 
         <div class="number">
@@ -28,10 +346,10 @@ Student Import Review
     </div>
 
 
-    <div class="card">
+    <div class="card card-valid">
 
         <div>
-            Valid
+            ✅ Valid
         </div>
 
         <div class="number">
@@ -41,10 +359,10 @@ Student Import Review
     </div>
 
 
-    <div class="card">
+    <div class="card card-invalid">
 
         <div>
-            Invalid
+            ⚠️ Invalid
         </div>
 
         <div class="number">
@@ -54,10 +372,10 @@ Student Import Review
     </div>
 
 
-    <div class="card">
+    <div class="card card-usage">
 
         <div>
-            Current Usage
+            👥 Current Usage
         </div>
 
         <div class="number">
@@ -73,23 +391,27 @@ Student Import Review
 </div>
 
 
-<p>
+<div class="batch-meta">
 
-    File:
-    <strong>
-        {{ batch.original_filename }}
-    </strong>
+    <p>
 
-</p>
+        File:
+        <strong>
+            {{ batch.original_filename }}
+        </strong>
 
-<p>
+    </p>
 
-    Status:
-    <strong>
-        {{ batch.get_status_display }}
-    </strong>
+    <p>
 
-</p>
+        Status:
+        <strong>
+            {{ batch.get_status_display }}
+        </strong>
+
+    </p>
+
+</div>
 
 
 {% if batch.status == "staged" %}
@@ -97,38 +419,38 @@ Student Import Review
     {% if batch.invalid_rows == 0 %}
 
         <form
+            class="confirm-form"
             method="post"
             action="{% url 'portal:student-import-confirm' batch.id %}"
-            style="
-                margin-bottom: 25px;
-            "
         >
 
             {% csrf_token %}
 
             <button
                 type="submit"
-                class="button"
+                class="confirm-btn"
             >
-                Confirm Import
+                ✅ Confirm Import
             </button>
 
         </form>
 
     {% else %}
 
-        <div
-            style="
-                background: #fee2e2;
-                padding: 15px;
-                margin-bottom: 20px;
-            "
-        >
+        <div class="import-error-banner">
 
-            This import contains errors.
+            <div>⚠️</div>
 
-            Correct the spreadsheet
-            and upload it again.
+            <div>
+
+                <strong>
+                    This import contains errors.
+                </strong>
+
+                Correct the spreadsheet
+                and upload it again.
+
+            </div>
 
         </div>
 
@@ -137,103 +459,133 @@ Student Import Review
 {% endif %}
 
 
-<table>
+<section class="table-card">
 
-    <thead>
+    <div class="table-scroll">
 
-        <tr>
+        <table class="data-table">
 
-            <th>
-                Row
-            </th>
+            <thead>
 
-            <th>
-                Admission No.
-            </th>
+                <tr>
 
-            <th>
-                Student
-            </th>
+                    <th>
+                        Row
+                    </th>
 
-            <th>
-                Class
-            </th>
+                    <th>
+                        Admission No.
+                    </th>
 
-            <th>
-                Status
-            </th>
+                    <th>
+                        Student
+                    </th>
 
-            <th>
-                Errors
-            </th>
+                    <th>
+                        Class
+                    </th>
 
-        </tr>
+                    <th>
+                        Status
+                    </th>
 
-    </thead>
+                    <th>
+                        Errors
+                    </th>
+
+                </tr>
+
+            </thead>
 
 
-    <tbody>
+            <tbody>
 
-        {% for row in rows %}
+                {% for row in rows %}
 
-            <tr>
+                    <tr>
 
-                <td>
-                    {{ row.row_number }}
-                </td>
+                        <td data-label="Row">
+                            {{ row.row_number }}
+                        </td>
 
-                <td>
-                    {{ row.normalized_data.admission_number }}
-                </td>
+                        <td data-label="Admission No.">
+                            {{ row.normalized_data.admission_number }}
+                        </td>
 
-                <td>
+                        <td data-label="Student">
 
-                    {{ row.normalized_data.first_name }}
+                            {{ row.normalized_data.first_name }}
 
-                    {{ row.normalized_data.last_name }}
+                            {{ row.normalized_data.last_name }}
 
-                </td>
+                        </td>
 
-                <td>
+                        <td data-label="Class">
 
-                    {{ row.normalized_data.class_level_code }}
+                            {{ row.normalized_data.class_level_code }}
 
-                    {{ row.normalized_data.class_section_code }}
+                            {{ row.normalized_data.class_section_code }}
 
-                </td>
+                        </td>
 
-                <td>
+                        <td data-label="Status">
 
-                    {% if row.is_valid %}
+                            {% if row.is_valid %}
 
-                        Valid
+                                <span class="status-badge row-status-valid">
+                                    Valid
+                                </span>
 
-                    {% else %}
+                            {% else %}
 
-                        Invalid
+                                <span class="status-badge row-status-invalid">
+                                    Invalid
+                                </span>
 
-                    {% endif %}
+                            {% endif %}
 
-                </td>
+                        </td>
 
-                <td>
+                        <td data-label="Errors">
 
-                    {% for error in row.errors %}
+                            <div class="row-error-list">
 
-                        <div>
-                            {{ error }}
-                        </div>
+                                {% for error in row.errors %}
 
-                    {% endfor %}
+                                    <div>
+                                        {{ error }}
+                                    </div>
 
-                </td>
+                                {% endfor %}
 
-            </tr>
+                            </div>
 
-        {% endfor %}
+                        </td>
 
-    </tbody>
+                    </tr>
 
-</table>
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="6">
+
+                            <div class="empty-state">
+                                No rows to display.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

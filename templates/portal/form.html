@@ -6,19 +6,115 @@
 {% endblock %}
 
 
-{% block heading %}
+{% block mobile_title %}
 {{ title }}
 {% endblock %}
 
 
 {% block content %}
 
-<div
-    class="card"
-    style="
+<style>
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .form-card {
+        position: relative;
+
         max-width: 800px;
-    "
->
+
+        overflow: hidden;
+    }
+
+    .form-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .form-card h2 {
+        margin: 0 0 20px;
+
+        color: var(--text-primary);
+
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .form-field {
+        margin-bottom: 18px;
+    }
+
+    .field-error {
+        margin-top: 5px;
+
+        color: var(--danger);
+
+        font-size: 11px;
+    }
+
+    .form-actions .button {
+        border: none;
+        color: #ffffff;
+
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+        box-shadow: 0 6px 16px rgba(21, 96, 189, 0.32);
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .form-actions .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(21, 96, 189, 0.42);
+    }
+
+    @media (max-width: 620px) {
+
+        .form-actions {
+            justify-content: stretch;
+        }
+
+        .form-actions .button {
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            {{ title }}
+        </h1>
+
+    </div>
+
+</div>
+
+
+<div class="card form-card">
 
     <h2>
         {{ title }}
@@ -26,16 +122,8 @@
 
     {% if form.non_field_errors %}
 
-        <div
-            style="
-                padding: 12px;
-                background: #fee2e2;
-                margin-bottom: 20px;
-            "
-        >
-
+        <div class="notice-box notice-danger">
             {{ form.non_field_errors }}
-
         </div>
 
     {% endif %}
@@ -54,19 +142,9 @@
 
         {% for field in form %}
 
-            <div
-                style="
-                    margin-bottom: 18px;
-                "
-            >
+            <div class="form-field">
 
-                <label
-                    style="
-                        display: block;
-                        font-weight: bold;
-                        margin-bottom: 6px;
-                    "
-                >
+                <label>
                     {{ field.label }}
                 </label>
 
@@ -74,13 +152,7 @@
 
                 {% if field.help_text %}
 
-                    <small
-                        style="
-                            display: block;
-                            margin-top: 5px;
-                            color: #6b7280;
-                        "
-                    >
+                    <small>
                         {{ field.help_text }}
                     </small>
 
@@ -89,12 +161,7 @@
 
                 {% for error in field.errors %}
 
-                    <div
-                        style="
-                            color: #b91c1c;
-                            margin-top: 5px;
-                        "
-                    >
+                    <div class="field-error">
                         {{ error }}
                     </div>
 
@@ -105,21 +172,16 @@
         {% endfor %}
 
 
-        <button
-            type="submit"
-            style="
-                padding: 12px 20px;
-                background: #111827;
-                color: white;
-                border: 0;
-                border-radius: 6px;
-                cursor: pointer;
-            "
-        >
+        <div class="form-actions">
 
-            {{ submit_label|default:"Save" }}
+            <button
+                class="button"
+                type="submit"
+            >
+                {{ submit_label|default:"Save" }}
+            </button>
 
-        </button>
+        </div>
 
     </form>
 

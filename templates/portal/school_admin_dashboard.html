@@ -14,17 +14,432 @@ Admin Dashboard
 
 {% block content %}
 
+<style>
+
+    /* ---- Stat cards ---- */
+
+    .stat-grid .stat-card {
+        position: relative;
+
+        border: none;
+        border-radius: 18px;
+
+        color: #ffffff;
+
+        opacity: 0;
+
+        transform: translateY(14px);
+
+        animation: statCardIn 0.5s ease forwards;
+
+        transition:
+            transform 220ms ease,
+            box-shadow 220ms ease;
+    }
+
+    .stat-grid .stat-card:nth-child(1) { animation-delay: 0ms;  }
+    .stat-grid .stat-card:nth-child(2) { animation-delay: 70ms; }
+    .stat-grid .stat-card:nth-child(3) { animation-delay: 140ms; }
+    .stat-grid .stat-card:nth-child(4) { animation-delay: 210ms; }
+
+    @keyframes statCardIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .stat-grid .stat-card {
+            opacity: 1;
+            transform: none;
+            animation: none;
+        }
+    }
+
+    .stat-card::after {
+        content: none;
+    }
+
+    .stat-card-purple {
+        background: linear-gradient(150deg, #191971, #2f2fa8 55%, #3b3bc4);
+        box-shadow: 0 12px 26px rgba(25, 25, 113, 0.38);
+    }
+
+    .stat-card-blue {
+        background: linear-gradient(150deg, #1560bd, #1f75fe);
+        box-shadow: 0 12px 26px rgba(21, 96, 189, 0.36);
+    }
+
+    .stat-card-orange {
+        background: linear-gradient(150deg, #0891b2, #22c3d6);
+        box-shadow: 0 12px 26px rgba(8, 145, 178, 0.36);
+    }
+
+    .stat-card-green {
+        background: linear-gradient(150deg, #059669, #22c55e);
+        box-shadow: 0 12px 26px rgba(5, 150, 105, 0.36);
+    }
+
+    .stat-grid .stat-card:hover {
+        transform: translateY(-6px);
+    }
+
+    .stat-card-purple:hover { box-shadow: 0 18px 34px rgba(25, 25, 113, 0.5); }
+    .stat-card-blue:hover   { box-shadow: 0 18px 34px rgba(21, 96, 189, 0.48); }
+    .stat-card-orange:hover { box-shadow: 0 18px 34px rgba(8, 145, 178, 0.48); }
+    .stat-card-green:hover  { box-shadow: 0 18px 34px rgba(5, 150, 105, 0.48); }
+
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 14px;
+
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(6px);
+
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 12px;
+
+        font-size: 19px;
+    }
+
+    .stat-label,
+    .stat-value,
+    .stat-caption {
+        color: #ffffff;
+
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        opacity: 0.95;
+    }
+
+    .stat-value {
+        margin-top: 6px;
+
+        font-size: 1.9rem;
+        font-weight: 850;
+        letter-spacing: -0.02em;
+    }
+
+    .stat-caption {
+        margin-top: 4px;
+
+        font-size: 0.8rem;
+        opacity: 0.9;
+    }
+
+    /* ---- Header actions ---- */
+
+    .page-actions .button-glow {
+        border: none;
+        color: #ffffff;
+
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .page-actions .button-glow:hover {
+        transform: translateY(-2px);
+    }
+
+    .admit-btn {
+        background: linear-gradient(135deg, #1560bd, #1f75fe);
+        box-shadow: 0 6px 16px rgba(21, 96, 189, 0.34);
+    }
+
+    .admit-btn:hover {
+        box-shadow: 0 10px 24px rgba(21, 96, 189, 0.46);
+    }
+
+    .payment-btn {
+        background: linear-gradient(135deg, #0891b2, #22c55e);
+        box-shadow: 0 6px 16px rgba(8, 145, 178, 0.3);
+    }
+
+    .payment-btn:hover {
+        box-shadow: 0 10px 24px rgba(5, 150, 105, 0.4);
+    }
+
+    /* ---- Panels & tables: shared accent so every block reads as one page ---- */
+
+    .dashboard-grid .panel,
+    .table-card {
+        position: relative;
+
+        overflow: hidden;
+
+        border-radius: 16px;
+
+        transition: box-shadow 220ms ease;
+    }
+
+    .dashboard-grid .panel::before,
+    .table-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .dashboard-grid .panel:hover,
+    .table-card:hover {
+        box-shadow: 0 12px 30px rgba(21, 40, 80, 0.1);
+    }
+
+    .panel-title h2 {
+        color: var(--text-primary);
+    }
+
+    .panel-title p {
+        color: var(--text-secondary);
+    }
+
+    /* ---- Student Distribution: bar list ---- */
+
+    .chart-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .chart-row {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr) 34px;
+
+        align-items: center;
+        gap: 14px;
+
+        margin: 0 -10px;
+        padding: 10px;
+
+        border-radius: 10px;
+
+        transition: background 160ms ease;
+    }
+
+    .chart-row:hover {
+        background: rgba(21, 96, 189, 0.06);
+    }
+
+    .chart-label {
+        color: #201a2b;
+        font-weight: 600;
+    }
+
+    .chart-track {
+        height: 10px;
+
+        background: #eef1f6;
+
+        border-radius: 999px;
+    }
+
+    .chart-fill {
+        height: 100%;
+
+        background: linear-gradient(90deg, #1560bd, #0891b2);
+
+        border-radius: inherit;
+
+        transition: width 400ms ease;
+    }
+
+    .chart-number {
+        color: #201a2b;
+        font-weight: 800;
+        text-align: right;
+    }
+
+    .donut-chart {
+        background: conic-gradient(
+            #1560bd 0 var(--male),
+            #22c3d6 var(--male) calc(var(--male) + var(--female)),
+            #e7ecf3 calc(var(--male) + var(--female)) 100%
+        ) !important;
+
+        box-shadow: 0 6px 18px rgba(21, 96, 189, 0.18);
+    }
+
+    .legend-purple {
+        background: #1560bd !important;
+    }
+
+    .legend-orange {
+        background: #22c3d6 !important;
+    }
+
+    .legend-item {
+        font-weight: 600;
+    }
+
+    /* ---- Recent Students / Recent Payments: card-style list, not a bordered table ---- */
+
+    .simple-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .simple-list-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+
+        margin: 0 6px;
+        padding: 14px 12px;
+
+        border-bottom: 1px solid var(--border);
+
+        border-radius: 10px;
+
+        transition: background 160ms ease;
+    }
+
+    .simple-list-row:last-child {
+        border-bottom: none;
+    }
+
+    .simple-list-row:hover {
+        background: rgba(21, 96, 189, 0.05);
+    }
+
+    .simple-list-person {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        min-width: 0;
+        font-size: 15px;
+    }
+
+    .simple-list-avatar {
+        width: 38px;
+        height: 38px;
+
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #ffffff;
+        background: linear-gradient(150deg, #1560bd, #22c3d6);
+
+        border-radius: 50%;
+
+        font-size: 13px;
+        font-weight: 800;
+
+        box-shadow: 0 4px 10px rgba(21, 96, 189, 0.3);
+    }
+
+    .simple-list-copy {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    .simple-list-copy strong {
+        overflow: hidden;
+
+        color: var(--text-primary);
+
+        font-size: 12px;
+
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .simple-list-copy span {
+        margin-top: 2px;
+
+        color: var(--text-muted);
+
+        font-size: 10px;
+    }
+
+    .simple-list-meta {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+
+        flex-shrink: 0;
+    }
+
+    .simple-list-secondary {
+        color: var(--text-secondary);
+
+        font-size: 11px;
+
+        white-space: nowrap;
+    }
+
+    .simple-list-amount {
+        color: var(--text-primary);
+
+        font-size: 12px;
+        font-weight: 800;
+
+        white-space: nowrap;
+    }
+
+    /* ---- Toolbar / list links ---- */
+
+    .table-toolbar {
+        background: linear-gradient(180deg, rgba(21, 96, 189, 0.045), transparent);
+    }
+
+    .table-link {
+        padding: 7px 14px;
+
+        color: #1560bd;
+        background: rgba(21, 96, 189, 0.08);
+
+        border-radius: 999px;
+
+        font-weight: 700;
+
+        transition: background 160ms ease;
+    }
+
+    .table-link:hover {
+        background: rgba(21, 96, 189, 0.16);
+        text-decoration: none;
+    }
+
+</style>
+
 <div class="page-header">
 
     <div class="page-heading">
 
-        <h1 
+        <h1
         class="page-title"
-        
+
         style="
             text-transform: uppercase;
             font-size: 1.5rem;
-            color: var(--text);
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
         "
         >
             Admin Dashboard
@@ -32,7 +447,7 @@ Admin Dashboard
 
         <p
             style="
-                font-size: 0.8rem;
+                font-size: 0.85rem;
                 color: var(--text-secondary);
             "
         >
@@ -49,17 +464,8 @@ Admin Dashboard
         {% if portal_access.students_add %}
 
             <a
-                class="button"
+                class="button button-glow admit-btn"
                 href="{% url 'portal:student-admit' %}"
-
-                style="
-                    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
-                    color: #ffffff;
-                    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-                    border: none;
-                    transition: background 0.3s ease, box-shadow 0.3s ease;
-                    "
-
                 >
                 + Admit Student
             </a>
@@ -70,16 +476,8 @@ Admin Dashboard
         {% if portal_access.finance %}
 
             <a
-                class="button button-secondary"
+                class="button button-secondary button-glow payment-btn"
                 href="{% url 'portal:finance-record-payment' %}"
-            
-                style="
-                    background: linear-gradient(135deg, #f97316, #fb923c);
-                    color: #ffffff;
-                    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-                    border: none;
-                    transition: background 0.3s ease, box-shadow 0.3s ease;
-                "
                 >
                 Record Payment
             </a>
@@ -93,118 +491,53 @@ Admin Dashboard
 
 <div class="stat-grid">
 
-    <article 
-        class="stat-card stat-purple"
+    <article class="stat-card stat-card-purple">
 
-        style="
-            background: linear-gradient(
-                135deg,
-                rgba(124, 58, 237, 0.85),
-                rgba(139, 92, 246, 0.85)
-            );
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
-            border: none;
-            "
-    >
+        <div class="stat-icon">
+            🎓
+        </div>
 
-        <div 
-            class="stat-label"
-
-            style="
-                color: #ffffff;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                font-weight: bold;
-                font-size: 1rem;
-            "
-        >
+        <div class="stat-label">
             Active Students
         </div>
 
-        <div 
-            class="stat-value"
-            
-            style="
-                color: #ffffff;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                font-weight: bold;
-                font-size: 2rem;     
-            "
-            >
+        <div class="stat-value">
             {{ student_count|intcomma }}
         </div>
 
-        <div 
-            class="stat-caption"
-            
-            style="
-                color: #ffffff;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                font-size: 0.9rem;
-                "
-            >
+        <div class="stat-caption">
             Currently enrolled students
         </div>
 
     </article>
 
 
-    <article 
-        class="stat-card stat-blue"
-        
-        style="
-            background: linear-gradient(
-                135deg,
-                rgba(59, 130, 246, 0.85),
-                rgba(96, 165, 250, 0.85)
-            );
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
-            border: none;
-        "
-        >
+    <article class="stat-card stat-card-blue">
 
-        <div 
-            class="stat-label"
-        
-        style="
-                color: #ffffff;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                font-weight: bold;
-                font-size: 1rem;
-                
-            "
-        >
+        <div class="stat-icon">
+            🧑‍🏫
+        </div>
+
+        <div class="stat-label">
             Teachers
         </div>
 
-        <div 
-            class="stat-value"
-            
-            style="
-                color: #ffffff;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                font-weight: bold;
-                font-size: 2rem;     
-            "
-            >
+        <div class="stat-value">
             {{ teacher_count|intcomma }}
         </div>
 
-        <div 
-            class="stat-caption"
-            
-            style="
-                color: #ffffff;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                font-size: 0.9rem;
-                "
-            >
+        <div class="stat-caption">
             Active teaching staff
         </div>
 
     </article>
 
 
-    <article class="stat-card stat-orange">
+    <article class="stat-card stat-card-orange">
+
+        <div class="stat-icon">
+            👪
+        </div>
 
         <div class="stat-label">
             Parents & Guardians
@@ -221,7 +554,11 @@ Admin Dashboard
     </article>
 
 
-    <article class="stat-card stat-green">
+    <article class="stat-card stat-card-green">
+
+        <div class="stat-icon">
+            💰
+        </div>
 
         <div class="stat-label">
             Outstanding Fees
@@ -244,7 +581,15 @@ Admin Dashboard
 </div>
 
 
-<div class="dashboard-grid">
+<div
+    class="dashboard-grid"
+
+    style="
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        "
+
+    >
 
     <section class="panel">
 
@@ -449,93 +794,62 @@ Admin Dashboard
         </div>
 
 
-        <div class="table-scroll">
+        <div class="simple-list">
 
-            <table class="data-table">
+            {% for student in recent_students %}
 
-                <thead>
+                <div class="simple-list-row">
 
-                    <tr>
-                        <th>Student</th>
-                        <th>Admission No.</th>
-                        <th>Status</th>
-                    </tr>
+                    <div class="simple-list-person">
 
-                </thead>
+                        <div class="simple-list-avatar">
 
-                <tbody>
+                            {{ student.first_name|first|upper }}
 
-                    {% for student in recent_students %}
+                            {{ student.last_name|first|upper }}
 
-                        <tr>
+                        </div>
 
-                            <td>
+                        <div class="simple-list-copy">
 
-                                <div class="table-person">
+                            <strong>
+                                {{ student.full_name }}
+                            </strong>
 
-                                    <div class="table-avatar">
-
-                                        {{ student.first_name|first|upper }}
-
-                                        {{ student.last_name|first|upper }}
-
-                                    </div>
-
-                                    <div class="table-person-copy">
-
-                                        <strong>
-                                            {{ student.full_name }}
-                                        </strong>
-
-                                        <span>
-                                            Added
-                                            {{ student.created_at|date:"d M Y" }}
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                            </td>
-
-                            <td>
+                            <span>
                                 {{ student.admission_number }}
-                            </td>
+                                &middot;
+                                Added
+                                {{ student.created_at|date:"d M Y" }}
+                            </span>
 
-                            <td>
+                        </div>
 
-                                <span
-                                    class="
-                                        status-badge
-                                        status-{{ student.status }}
-                                    "
-                                >
-                                    {{ student.get_status_display }}
-                                </span>
+                    </div>
 
-                            </td>
 
-                        </tr>
+                    <div class="simple-list-meta">
 
-                    {% empty %}
+                        <span
+                            class="
+                                status-badge
+                                status-{{ student.status }}
+                            "
+                        >
+                            {{ student.get_status_display }}
+                        </span>
 
-                        <tr>
+                    </div>
 
-                            <td colspan="3">
+                </div>
 
-                                <div class="empty-state">
-                                    No students have been added.
-                                </div>
+            {% empty %}
 
-                            </td>
+                <div class="empty-state">
+                    No students have been added.
+                </div>
 
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
+            {% endfor %}
 
         </div>
 
@@ -573,67 +887,58 @@ Admin Dashboard
         </div>
 
 
-        <div class="table-scroll">
+        <div class="simple-list">
 
-            <table class="data-table">
+            {% for payment in recent_payments %}
 
-                <thead>
+                <div class="simple-list-row">
 
-                    <tr>
-                        <th>Student</th>
-                        <th>Reference</th>
-                        <th>Amount</th>
-                    </tr>
+                    <div class="simple-list-person">
 
-                </thead>
+                        <div class="simple-list-avatar">
 
-                <tbody>
+                            {{ payment.enrollment.student.first_name|first|upper }}
 
-                    {% for payment in recent_payments %}
+                            {{ payment.enrollment.student.last_name|first|upper }}
 
-                        <tr>
+                        </div>
 
-                            <td>
+                        <div class="simple-list-copy">
+
+                            <strong>
                                 {{ payment.enrollment.student.full_name }}
-                            </td>
+                            </strong>
 
-                            <td>
+                            <span>
                                 {{ payment.payment_number }}
-                            </td>
+                            </span>
 
-                            <td>
+                        </div>
 
-                                <strong>
+                    </div>
 
-                                    {{ portal_theme.currency_code }}
 
-                                    {{ payment.amount|floatformat:2|intcomma }}
+                    <div class="simple-list-meta">
 
-                                </strong>
+                        <span class="simple-list-amount">
 
-                            </td>
+                            {{ portal_theme.currency_code }}
 
-                        </tr>
+                            {{ payment.amount|floatformat:2|intcomma }}
 
-                    {% empty %}
+                        </span>
 
-                        <tr>
+                    </div>
 
-                            <td colspan="3">
+                </div>
 
-                                <div class="empty-state">
-                                    No confirmed payments yet.
-                                </div>
+            {% empty %}
 
-                            </td>
+                <div class="empty-state">
+                    No confirmed payments yet.
+                </div>
 
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
+            {% endfor %}
 
         </div>
 

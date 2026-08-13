@@ -8,14 +8,170 @@ School Administration Studio
 
 {% block content %}
 
-<h1>
-    Administration Studio
-</h1>
+<style>
+
+    .page-heading h1 {
+        margin: 0;
+
+        text-transform: uppercase;
+
+        color: var(--text-primary);
+
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    .page-heading p {
+        margin: 7px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 0.85rem;
+    }
+
+    .subscription-card {
+        position: relative;
+
+        overflow: hidden;
+
+        margin-top: 18px;
+    }
+
+    .subscription-card::before {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 3px;
+
+        content: "";
+
+        background: linear-gradient(90deg, #191971, #1560bd, #0891b2, #22c55e);
+    }
+
+    .subscription-card h3 {
+        margin: 0 0 12px;
+
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: var(--text-primary);
+
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    /* ---- Action card icons + per-card color ---- */
+
+    .action-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 12px;
+
+        border-radius: 12px;
+
+        font-size: 20px;
+    }
+
+    .action-card:nth-child(1) .action-icon {
+        background: rgba(21, 96, 189, 0.12);
+    }
+
+    .action-card:nth-child(2) .action-icon {
+        background: rgba(31, 117, 254, 0.12);
+    }
+
+    .action-card:nth-child(3) .action-icon {
+        background: rgba(8, 145, 178, 0.12);
+    }
+
+    .action-card:nth-child(1) .action-card-label,
+    .action-card:nth-child(1) .action-card-footer {
+        color: #1560bd;
+    }
+
+    .action-card:nth-child(2) .action-card-label,
+    .action-card:nth-child(2) .action-card-footer {
+        color: #1f75fe;
+    }
+
+    .action-card:nth-child(3) .action-card-label,
+    .action-card:nth-child(3) .action-card-footer {
+        color: #0891b2;
+    }
+
+    .action-card:nth-child(1)::after {
+        background: rgba(21, 96, 189, 0.08);
+    }
+
+    .action-card:nth-child(2)::after {
+        background: rgba(31, 117, 254, 0.08);
+    }
+
+    .action-card:nth-child(3)::after {
+        background: rgba(8, 145, 178, 0.08);
+    }
+
+    .action-card:nth-child(1):hover {
+        border-color: rgba(21, 96, 189, 0.3);
+    }
+
+    .action-card:nth-child(2):hover {
+        border-color: rgba(31, 117, 254, 0.3);
+    }
+
+    .action-card:nth-child(3):hover {
+        border-color: rgba(8, 145, 178, 0.3);
+    }
+
+    /* ---- Colored subscription values ---- */
+
+    .summary-row .status-badge {
+        font-weight: 800;
+    }
+
+</style>
+
+<div class="page-header">
+
+    <div class="page-heading">
+
+        <h1>
+            Administration Studio
+        </h1>
+
+        <p>
+            School-wide settings, access control, and subscription details.
+        </p>
+
+    </div>
+
+</div>
 
 
-<div class="cards">
+<div class="action-grid">
 
-    <div class="card">
+    <a
+        class="action-card"
+        href="{% url 'portal:school-profile-settings' %}"
+    >
+
+        <div class="action-icon">
+            🏫
+        </div>
+
+        <span class="action-card-label">
+            Settings
+        </span>
 
         <h3>
             School Profile
@@ -26,16 +182,25 @@ School Administration Studio
             currency and language.
         </p>
 
-        <a
-            href="{% url 'portal:school-profile-settings' %}"
-        >
-            Manage
-        </a>
+        <span class="action-card-footer">
+            Manage &rarr;
+        </span>
 
-    </div>
+    </a>
 
 
-    <div class="card">
+    <a
+        class="action-card"
+        href="{% url 'portal:school-branding-settings' %}"
+    >
+
+        <div class="action-icon">
+            🎨
+        </div>
+
+        <span class="action-card-label">
+            Settings
+        </span>
 
         <h3>
             Branding
@@ -46,89 +211,121 @@ School Administration Studio
             motto and login appearance.
         </p>
 
-        <a
-            href="{% url 'portal:school-branding-settings' %}"
-        >
-            Manage
-        </a>
+        <span class="action-card-footer">
+            Manage &rarr;
+        </span>
 
-    </div>
+    </a>
 
 
-    <div class="card">
+    <a
+        class="action-card"
+        href="{% url 'portal:school-user-list' %}"
+    >
+
+        <div class="action-icon">
+            🔐
+        </div>
+
+        <span class="action-card-label">
+            Access
+        </span>
 
         <h3>
-            Subscription
+            User Accounts
         </h3>
 
-        {% if usage.subscription %}
+        <p>
+            Create logins, assign roles
+            and manage school access.
+        </p>
 
-            <p>
+        <span class="action-card-footer">
+            Manage Users &rarr;
+        </span>
 
-                Plan:
+    </a>
+
+</div>
+
+
+<div class="card subscription-card">
+
+    <h3>
+        💳 Subscription
+    </h3>
+
+    {% if usage.subscription %}
+
+        <div class="summary-list">
+
+            <div class="summary-row">
+
+                <span>
+                    Plan
+                </span>
 
                 <strong>
                     {{ usage.subscription.plan.name }}
                 </strong>
 
-            </p>
+            </div>
 
-            <p>
 
-                Status:
+            <div class="summary-row">
 
-                {{ usage.subscription.get_status_display }}
+                <span>
+                    Status
+                </span>
 
-            </p>
+                <span
+                    class="
+                        status-badge
+                        status-{{ usage.subscription.status }}
+                    "
+                >
+                    {{ usage.subscription.get_status_display }}
+                </span>
 
-            <p>
+            </div>
 
-                Students:
 
-                {{ usage.active_students }}
+            <div class="summary-row">
 
-                /
+                <span>
+                    Students
+                </span>
 
-                {{ usage.student_limit }}
+                <strong>
+                    {{ usage.active_students }}
+                    /
+                    {{ usage.student_limit }}
+                </strong>
 
-            </p>
+            </div>
 
-            <p>
 
-                Remaining Capacity:
+            <div class="summary-row">
 
-                {{ usage.remaining }}
+                <span>
+                    Remaining Capacity
+                </span>
 
-            </p>
+                <strong>
+                    {{ usage.remaining }}
+                </strong>
 
-        {% else %}
+            </div>
 
-            <p>
-                No subscription configured.
-            </p>
+        </div>
 
-        {% endif %}
+    {% else %}
 
-    </div>
+        <div class="empty-state">
+            No subscription configured.
+        </div>
 
-</div>
-
-<div class="card">
-
-    <h3>
-        User Accounts
-    </h3>
-
-    <p>
-        Create logins, assign roles
-        and manage school access.
-    </p>
-
-    <a
-        href="{% url 'portal:school-user-list' %}"
-    >
-        Manage Users
-    </a>
+    {% endif %}
 
 </div>
 

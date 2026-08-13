@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -35,81 +36,71 @@
                 "Segoe UI",
                 sans-serif;
 
-            background:
-                #f4f0fb;
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
 
             color:
                 #231d2b;
         }
 
+        /* --- Mobile default: single glass card --- */
         .login-card {
-            width: min(
-                430px,
-                100%
+            width: 100%;
+            max-width: 430px;
+
+            padding: 40px;
+
+            background: linear-gradient(
+                160deg,
+                rgba(25, 25, 113, 0.55),
+                rgba(21, 96, 189, 0.45)
             );
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(12px);
 
-            padding: 38px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
 
-            background: white;
-
-            border:
-                1px solid #ebe5f1;
-
-            border-radius: 20px;
-
-            box-shadow:
-                0 20px 60px
-                rgba(
-                    57,
-                    40,
-                    74,
-                    0.1
-                );
+            box-shadow: 0 24px 50px rgba(20, 20, 24, 0.25);
         }
+
 
         .brand {
-            color: #7c3aed;
+            color: #cfe0fb;
 
-            font-size: 13px;
+            font-size: 20px;
             font-weight: 800;
 
-            text-transform:
-                uppercase;
+            text-transform: uppercase;
 
-            letter-spacing:
-                0.08em;
+            letter-spacing: 0.1em;
         }
 
-        h1 {
-            margin:
-                13px
-                0
-                8px;
+         h1 {
+            margin: 13px 0 8px;
 
             font-size: 28px;
 
-            letter-spacing:
-                -0.04em;
+            letter-spacing: -0.04em;
+
+            color: #ffffff;
         }
 
         .description {
-            margin:
-                0
-                0
-                28px;
+            margin: 0 0 28px;
 
-            color: #766f80;
+            color: rgba(255, 255, 255, 0.78);
 
-            font-size: 13px;
+            font-size: 15px;
 
             line-height: 1.5;
         }
 
-        form p {
-            margin:
-                0
-                0
-                17px;
+         form p {
+            margin: 0 0 17px;
         }
 
         label {
@@ -119,21 +110,30 @@
 
             font-size: 12px;
             font-weight: 700;
+
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        input {
+       input {
             width: 100%;
 
-            padding:
-                12px
-                13px;
+            padding: 12px 13px;
 
-            border:
-                1px solid #ded7e6;
+            background: #f4f4f6;
 
+            border: none;
             border-radius: 9px;
 
             font: inherit;
+            color: #201a2b;
+
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+         input:focus {
+            outline: none;
+            border-color: #1560bd;
+            box-shadow: 0 0 0 3px rgba(21, 96, 189, 0.3);
         }
 
         button {
@@ -143,25 +143,75 @@
 
             padding: 13px;
 
-            color: white;
-            background: #7c3aed;
+            color: #ffffff;
+            background: linear-gradient(135deg, #1560bd, #1f75fe);
 
-            border: 0;
+            border: none;
             border-radius: 9px;
 
             font-weight: 800;
 
             cursor: pointer;
+
+            box-shadow: 0 6px 16px rgba(21, 96, 189, 0.34);
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+        }
+
+         button:hover {
+            background: linear-gradient(135deg, #124f9e, #1560bd);
+            box-shadow: 0 8px 20px rgba(21, 96, 189, 0.44);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .errorlist {
-            padding: 0;
+            padding: 12px;
 
-            color: #b42318;
-
-            font-size: 12px;
+            margin: 0 0 20px;
 
             list-style: none;
+
+            background: #ffeaea;
+            color: #a63737;
+            border: 1px solid #ffd5d5;
+            border-radius: 8px;
+
+            font-size: 12px;
+        }
+
+         /* --- Tablet and up: split panel layout --- */
+        @media (min-width: 768px) {
+
+            body {
+                align-items: stretch;
+                justify-content: flex-start;
+                padding: 0;
+                background-attachment: fixed;
+            }
+
+            .login-card {
+                flex: 0 0 420px;
+                max-width: 420px;
+
+                height: 100vh;
+
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
+                background: linear-gradient(150deg, #191971, #2f2fa8 55%, #3b3bc4);
+
+                border: 0;
+                border-radius: 0;
+
+                box-shadow: -6px 0 30px rgba(20, 20, 24, 0.15);
+
+                padding: 60px;
+            }
+
         }
 
     </style>
@@ -169,7 +219,7 @@
 </head>
 
 
-<body>
+<body style="--bg-image: url('{% static 'assets/school.png' %}');">
 
 <div class="login-card">
 
