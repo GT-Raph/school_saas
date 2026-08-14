@@ -1,184 +1,105 @@
 {% extends "portal/base.html" %}
 
-
-{% block title %}
+{% block heading %}
 Enter Marks
 {% endblock %}
-
-
-{% block mobile_title %}
-Enter Marks
-{% endblock %}
-
 
 {% block content %}
 
-<div class="page-header">
+<h1>
+    {{ assessment.name }}
+</h1>
 
-    <div class="page-heading">
+<p>
+    {{ offering.subject.name }}
+    ·
+    {{ offering.class_section }}
+</p>
 
-        <h1>
-            {{ assessment.name }}
-        </h1>
-
-        <p>
-            {{ offering.subject.name }}
-            ·
-            {{ offering.class_section }}
-        </p>
+<p>
+    Maximum Score:
+    <strong>
+        {{ assessment.max_score }}
+    </strong>
+</p>
 
 
-        <div class="inline-metadata">
+<form method="post">
 
-            <span class="metadata-pill">
-                Maximum Score:
-                {{ assessment.max_score }}
-            </span>
+    {% csrf_token %}
 
-            <span class="metadata-pill">
-                {{ assessment.category.name }}
-            </span>
+    {{ formset.management_form }}
 
+
+    {% if formset.non_form_errors %}
+
+        <div class="card">
+            {{ formset.non_form_errors }}
         </div>
 
-    </div>
+    {% endif %}
 
 
-    <div class="page-actions">
+    <table>
 
-        <a
-            class="button button-secondary"
-            href="{% url 'portal:teacher-assessments' offering.id assessment.assessment_plan.term_id %}"
-        >
-            Back to Assessments
-        </a>
+        <thead>
 
-    </div>
+            <tr>
+                <th>Student</th>
+                <th>Admission No.</th>
+                <th>Score</th>
+                <th>Absent</th>
+                <th>Comment</th>
+            </tr>
 
-</div>
+        </thead>
 
+        <tbody>
 
-<section class="table-card">
+            {% for form in formset %}
 
-    <form method="post">
+                {{ form.enrollment_id }}
 
-        {% csrf_token %}
+                <tr>
 
-        {{ formset.management_form }}
+                    <td>
+                        {{ form.student_name.value }}
+                    </td>
 
+                    <td>
+                        {{ form.admission_number.value }}
+                    </td>
 
-        {% if formset.non_form_errors %}
+                    <td>
+                        {{ form.raw_score }}
+                        {{ form.raw_score.errors }}
+                    </td>
 
-            <div class="notice-box notice-danger">
-                {{ formset.non_form_errors }}
-            </div>
+                    <td>
+                        {{ form.is_absent }}
+                    </td>
 
-        {% endif %}
+                    <td>
+                        {{ form.comment }}
+                    </td>
 
+                </tr>
 
-        <div class="table-scroll">
+            {% endfor %}
 
-            <table class="data-table form-table">
+        </tbody>
 
-                <thead>
-
-                    <tr>
-                        <th>Student</th>
-                        <th>Admission Number</th>
-                        <th>Score</th>
-                        <th>Absent</th>
-                        <th>Comment</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for form in formset %}
-
-                        {{ form.enrollment_id }}
-
-                        <tr>
-
-                            <td>
-
-                                <div class="table-person">
-
-                                    <div class="table-avatar">
-                                        {{ form.student_name.value|first|upper }}
-                                    </div>
-
-                                    <div class="table-person-copy">
-
-                                        <strong>
-                                            {{ form.student_name.value }}
-                                        </strong>
-
-                                        <span>
-                                            {{ offering.class_section }}
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                            </td>
-
-                            <td>
-                                {{ form.admission_number.value }}
-                            </td>
-
-                            <td>
-
-                                {{ form.raw_score }}
-
-                                {{ form.raw_score.errors }}
-
-                            </td>
-
-                            <td>
-
-                                {{ form.is_absent }}
-
-                                {{ form.is_absent.errors }}
-
-                            </td>
-
-                            <td>
-
-                                {{ form.comment }}
-
-                                {{ form.comment.errors }}
-
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
+    </table>
 
 
-        <div
-            class="form-actions"
-            style="padding: 0 18px 18px;"
-        >
+    <button
+        class="button"
+        type="submit"
+        style="margin-top: 20px;"
+    >
+        Save Marks
+    </button>
 
-            <button
-                class="button"
-                type="submit"
-            >
-                Save Marks
-            </button>
-
-        </div>
-
-    </form>
-
-</section>
+</form>
 
 {% endblock %}

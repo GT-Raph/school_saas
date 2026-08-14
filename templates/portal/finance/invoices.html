@@ -1,35 +1,31 @@
 {% extends "portal/base.html" %}
-{% load humanize %}
 
-
-{% block title %}
+{% block heading %}
 Student Invoices
 {% endblock %}
 
-
-{% block mobile_title %}
-Invoices
-{% endblock %}
-
-
 {% block content %}
 
-<div class="page-header">
+<div
+    style="
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    "
+>
 
-    <div class="page-heading">
+    <h1>
+        Invoices
+    </h1>
 
-        <h1>
-            Student Invoices
-        </h1>
+    <div>
 
-        <p>
-            Generate, review and issue student fee invoices.
-        </p>
-
-    </div>
-
-
-    <div class="page-actions">
+        <a
+            class="button"
+            href="{% url 'portal:finance-bulk-invoices' %}"
+        >
+            Generate Invoices
+        </a>
 
         <a
             class="button button-secondary"
@@ -38,222 +34,100 @@ Invoices
             Record Payment
         </a>
 
-        <a
-            class="button"
-            href="{% url 'portal:finance-bulk-invoices' %}"
-        >
-            + Generate Invoices
-        </a>
-
     </div>
 
 </div>
 
 
-<section class="table-card">
+<form method="get">
 
-    <div class="table-toolbar">
+    <input
+        name="q"
+        value="{{ query }}"
+        placeholder="Student or invoice number"
+    >
 
-        <div class="panel-title">
+    <button class="button">
+        Search
+    </button>
 
-            <h2>
-                Invoice Register
-            </h2>
+</form>
 
-            <p>
-                Review student billing records and balances.
-            </p>
 
-        </div>
+<table style="margin-top: 20px;">
 
+    <thead>
+        <tr>
+            <th>Invoice</th>
+            <th>Student</th>
+            <th>Total</th>
+            <th>Balance</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
 
-        <form
-            class="filter-form"
-            method="get"
-        >
+    <tbody>
 
-            <input
-                class="field-control"
-                type="search"
-                name="q"
-                value="{{ query }}"
-                placeholder="Student or invoice number"
-            >
+        {% for row in rows %}
 
-            <button
-                class="button"
-                type="submit"
-            >
-                Search
-            </button>
+            <tr>
 
-            {% if query %}
+                <td>
+                    {{ row.invoice.invoice_number }}
+                </td>
 
-                <a
-                    class="button button-muted"
-                    href="{% url 'portal:finance-invoices' %}"
-                >
-                    Clear
-                </a>
+                <td>
+                    {{ row.invoice.enrollment.student.full_name }}
+                </td>
 
-            {% endif %}
+                <td>
+                    GH₵{{ row.invoice.gross_total }}
+                </td>
 
-        </form>
+                <td>
+                    GH₵{{ row.balance }}
+                </td>
 
-    </div>
+                <td>
+                    {{ row.invoice.get_status_display }}
+                </td>
 
+                <td>
 
-    <div class="table-scroll">
+                    {% if row.invoice.status == "draft" %}
 
-        <table class="data-table">
+                        <form
+                            method="post"
+                            action="{% url 'portal:finance-issue-invoice' row.invoice.id %}"
+                        >
 
-            <thead>
+                            {% csrf_token %}
 
-                <tr>
-                    <th>Invoice</th>
-                    <th>Student</th>
-                    <th>Term</th>
-                    <th>Total</th>
-                    <th>Balance</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+                            <button type="submit">
+                                Issue
+                            </button>
 
-            </thead>
+                        </form>
 
-            <tbody>
+                    {% endif %}
 
-                {% for row in rows %}
+                </td>
 
-                    <tr>
+            </tr>
 
-                        <td>
+        {% empty %}
 
-                            <strong>
-                                {{ row.invoice.invoice_number }}
-                            </strong>
+            <tr>
+                <td colspan="6">
+                    No invoices found.
+                </td>
+            </tr>
 
-                        </td>
+        {% endfor %}
 
-                        <td>
+    </tbody>
 
-                            <div class="table-person">
-
-                                <div class="table-avatar">
-
-                                    {{ row.invoice.enrollment.student.first_name|first|upper }}
-
-                                    {{ row.invoice.enrollment.student.last_name|first|upper }}
-
-                                </div>
-
-                                <div class="table-person-copy">
-
-                                    <strong>
-                                        {{ row.invoice.enrollment.student.full_name }}
-                                    </strong>
-
-                                    <span>
-                                        {{ row.invoice.enrollment.student.admission_number }}
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td>
-                            {{ row.invoice.term.name }}
-                        </td>
-
-                        <td>
-
-                            {{ portal_theme.currency_code }}
-
-                            {{ row.invoice.gross_total|floatformat:2|intcomma }}
-
-                        </td>
-
-                        <td>
-
-                            <strong>
-
-                                {{ portal_theme.currency_code }}
-
-                                {{ row.balance|floatformat:2|intcomma }}
-
-                            </strong>
-
-                        </td>
-
-                        <td>
-
-                            <span
-                                class="
-                                    status-badge
-                                    status-{{ row.invoice.status }}
-                                "
-                            >
-                                {{ row.invoice.get_status_display }}
-                            </span>
-
-                        </td>
-
-                        <td>
-
-                            {% if row.invoice.status == "draft" %}
-
-                                <form
-                                    method="post"
-                                    action="{% url 'portal:finance-issue-invoice' row.invoice.id %}"
-                                >
-
-                                    {% csrf_token %}
-
-                                    <button
-                                        class="button button-secondary"
-                                        type="submit"
-                                    >
-                                        Issue
-                                    </button>
-
-                                </form>
-
-                            {% else %}
-
-                                <span class="metadata-pill">
-                                    Issued
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                {% empty %}
-
-                    <tr>
-
-                        <td colspan="7">
-
-                            <div class="empty-state">
-                                No invoices matched your search.
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</section>
+</table>
 
 {% endblock %}

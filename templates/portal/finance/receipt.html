@@ -1,274 +1,96 @@
 {% extends "portal/base.html" %}
-{% load humanize %}
 
-
-{% block title %}
+{% block heading %}
 Payment Receipt
 {% endblock %}
 
-
-{% block mobile_title %}
-Receipt
-{% endblock %}
-
-
 {% block content %}
 
-<div class="page-header print-hidden">
+<div
+    class="card"
+    style="
+        max-width: 700px;
+    "
+>
 
-    <div class="page-heading">
+    <h1>
+        PAYMENT RECEIPT
+    </h1>
 
-        <h1>
-            Payment Receipt
-        </h1>
+    <p>
+        <strong>
+            {{ request.school.name }}
+        </strong>
+    </p>
+
+    <hr>
+
+    <p>
+        Receipt Number:
+        <strong>
+            {{ receipt.receipt_number }}
+        </strong>
+    </p>
+
+    <p>
+        Student:
+        <strong>
+            {{ receipt.snapshot.student.name }}
+        </strong>
+    </p>
+
+    <p>
+        Admission Number:
+        {{ receipt.snapshot.student.admission_number }}
+    </p>
+
+    <p>
+        Amount:
+        <strong>
+            GH₵{{ receipt.snapshot.amount }}
+        </strong>
+    </p>
+
+    <p>
+        Method:
+        {{ receipt.snapshot.method }}
+    </p>
+
+    <p>
+        Payer:
+        {{ receipt.snapshot.payer_name }}
+    </p>
+
+    <p>
+        Reference:
+        {{ receipt.snapshot.reference }}
+    </p>
+
+    <h3>
+        Allocations
+    </h3>
+
+    {% for allocation in receipt.snapshot.allocations %}
 
         <p>
-            Confirmed payment receipt and invoice allocation.
+
+            {{ allocation.invoice }}
+
+            —
+
+            GH₵{{ allocation.amount }}
+
         </p>
 
-    </div>
-
-
-    <div class="page-actions">
-
-        <a
-            class="button button-secondary"
-            href="{% url 'portal:finance-student-accounts' %}"
-        >
-            Student Accounts
-        </a>
-
-        <button
-            class="button"
-            type="button"
-            onclick="window.print()"
-        >
-            Print Receipt
-        </button>
-
-    </div>
-
-</div>
-
-
-<div class="receipt-paper">
-
-    <div class="receipt-header">
-
-        <div class="receipt-school">
-
-            <h1>
-                {{ portal_theme.school_name }}
-            </h1>
-
-            <p>
-                {{ portal_theme.motto }}
-            </p>
-
-        </div>
-
-
-        <div class="receipt-title">
-
-            <strong>
-                PAYMENT RECEIPT
-            </strong>
-
-            <span>
-                {{ receipt.receipt_number }}
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <div class="receipt-details">
-
-        <div class="receipt-field">
-
-            <span>
-                Student
-            </span>
-
-            <strong>
-                {{ receipt.snapshot.student.name }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Admission Number
-            </span>
-
-            <strong>
-                {{ receipt.snapshot.student.admission_number }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Payment Number
-            </span>
-
-            <strong>
-                {{ receipt.snapshot.payment_number }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Payment Method
-            </span>
-
-            <strong>
-                {{ receipt.snapshot.method|title }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Payer
-            </span>
-
-            <strong>
-                {{ receipt.snapshot.payer_name|default:"Not specified" }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Reference
-            </span>
-
-            <strong>
-                {{ receipt.snapshot.reference|default:"—" }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Payment Date
-            </span>
-
-            <strong>
-                {{ receipt.payment.paid_at|date:"d M Y, H:i" }}
-            </strong>
-
-        </div>
-
-
-        <div class="receipt-field">
-
-            <span>
-                Issued By
-            </span>
-
-            <strong>
-                {{ receipt.issued_by.get_full_name|default:receipt.issued_by.username }}
-            </strong>
-
-        </div>
-
-    </div>
-
-
-    <div class="section-heading">
-
-        <div>
-
-            <h2>
-                Invoice Allocation
-            </h2>
-
-            <p>
-                How this payment was allocated.
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <section class="table-card">
-
-        <div class="table-scroll">
-
-            <table class="data-table">
-
-                <thead>
-
-                    <tr>
-                        <th>Invoice</th>
-                        <th>Amount</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for allocation in receipt.snapshot.allocations %}
-
-                        <tr>
-
-                            <td>
-                                {{ allocation.invoice }}
-                            </td>
-
-                            <td>
-
-                                {{ portal_theme.currency_code }}
-
-                                {{ allocation.amount }}
-
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </section>
-
-
-    <div class="receipt-total">
-
-        <span>
-            Amount Received
-        </span>
-
-        <strong>
-
-            {{ portal_theme.currency_code }}
-
-            {{ receipt.snapshot.amount }}
-
-        </strong>
-
-    </div>
+    {% endfor %}
+
+
+    <button
+        class="button"
+        onclick="window.print()"
+    >
+        Print Receipt
+    </button>
 
 </div>
 
