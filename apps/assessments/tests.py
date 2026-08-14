@@ -13,7 +13,6 @@ from apps.academics.models import (
     SubjectOffering,
     Term,
 )
-
 from apps.assessments.models import (
     Assessment,
     AssessmentCategory,
@@ -22,13 +21,11 @@ from apps.assessments.models import (
     GradeScale,
     OfferingAssessmentPlan,
 )
-
 from apps.assessments.services import (
     calculate_subject_result,
     save_student_score,
     validate_scheme_weights,
 )
-
 from apps.schools.models import School
 from apps.students.models import Student
 
@@ -36,7 +33,6 @@ from apps.students.models import Student
 class AssessmentEngineTests(TestCase):
 
     def setUp(self):
-
         self.school = School.objects.create(
             name="Test Academy",
             slug="test-academy",
@@ -57,7 +53,6 @@ class AssessmentEngineTests(TestCase):
             starts_on=date(2026, 9, 1),
             ends_on=date(2026, 12, 20),
         )
-
         self.term.full_clean()
         self.term.save()
 
@@ -74,7 +69,6 @@ class AssessmentEngineTests(TestCase):
             name="A",
             code="a",
         )
-
         self.section.full_clean()
         self.section.save()
 
@@ -90,7 +84,6 @@ class AssessmentEngineTests(TestCase):
             class_section=self.section,
             subject=self.subject,
         )
-
         self.offering.full_clean()
         self.offering.save()
 
@@ -108,7 +101,6 @@ class AssessmentEngineTests(TestCase):
             class_section=self.section,
             enrolled_on=date(2026, 9, 1),
         )
-
         self.enrollment.full_clean()
         self.enrollment.save()
 
@@ -119,60 +111,72 @@ class AssessmentEngineTests(TestCase):
             academic_year=self.year,
         )
 
-        self.ca_category = (
-            AssessmentCategory.objects.create(
-                school=self.school,
-                scheme=self.scheme,
-                name="CA",
-                code="ca",
-                weight=40,
-                sequence=1,
-            )
+        self.ca_category = AssessmentCategory.objects.create(
+            school=self.school,
+            scheme=self.scheme,
+            name="CA",
+            code="ca",
+            weight=Decimal("40.00"),
+            sequence=1,
         )
 
-        self.exam_category = (
-            AssessmentCategory.objects.create(
-                school=self.school,
-                scheme=self.scheme,
-                name="Exam",
-                code="exam",
-                weight=60,
-                sequence=2,
-            )
+        self.exam_category = AssessmentCategory.objects.create(
+            school=self.school,
+            scheme=self.scheme,
+            name="Exam",
+            code="exam",
+            weight=Decimal("60.00"),
+            sequence=2,
         )
 
-        self.grade_scale = (
-            GradeScale.objects.create(
-                school=self.school,
-                name="Standard",
-                code="standard",
-            )
+        self.grade_scale = GradeScale.objects.create(
+            school=self.school,
+            name="Standard",
+            code="standard",
         )
 
-        for grade, low, high, is_pass in [
-            ("A", Decimal("80.00"), Decimal("100.00"), True),
-            ("B", Decimal("70.00"), Decimal("79.99"), True),
-            ("C", Decimal("60.00"), Decimal("69.99"), True),
-            ("D", Decimal("50.00"), Decimal("59.99"), True),
-            ("F", Decimal("0.00"), Decimal("49.99"), False),
-        ]:
-            print(
-                "CREATING BAND:",
-                grade,
-                repr(low),
-                repr(high),
-                type(high),
-            )
+        grade_bands = [
+            (
+                "A",
+                Decimal("80.00"),
+                Decimal("100.00"),
+                True,
+            ),
+            (
+                "B",
+                Decimal("70.00"),
+                Decimal("79.99"),
+                True,
+            ),
+            (
+                "C",
+                Decimal("60.00"),
+                Decimal("69.99"),
+                True,
+            ),
+            (
+                "D",
+                Decimal("50.00"),
+                Decimal("59.99"),
+                True,
+            ),
+            (
+                "F",
+                Decimal("0.00"),
+                Decimal("49.99"),
+                False,
+            ),
+        ]
 
+        for grade, minimum, maximum, is_pass in grade_bands:
             band = GradeBand(
                 school=self.school,
                 grade_scale=self.grade_scale,
                 grade=grade,
-                minimum_score=low,
-                maximum_score=high,
+                minimum_score=minimum,
+                maximum_score=maximum,
                 is_pass=is_pass,
             )
-
             band.full_clean()
             band.save()
 
@@ -183,12 +187,10 @@ class AssessmentEngineTests(TestCase):
             scheme=self.scheme,
             grade_scale=self.grade_scale,
         )
-
         self.plan.full_clean()
         self.plan.save()
 
     def test_scheme_weights_equal_100(self):
-
         self.assertTrue(
             validate_scheme_weights(
                 self.scheme
@@ -196,34 +198,30 @@ class AssessmentEngineTests(TestCase):
         )
 
     def test_score_cannot_exceed_maximum(self):
-
         assessment = Assessment.objects.create(
             school=self.school,
             assessment_plan=self.plan,
             category=self.ca_category,
             name="Class Test",
-            max_score=20,
+            max_score=Decimal("20.00"),
             status=Assessment.Status.OPEN,
         )
 
-        with self.assertRaises(
-            ValidationError
-        ):
+        with self.assertRaises(ValidationError):
             save_student_score(
                 school=self.school,
                 assessment=assessment,
                 enrollment=self.enrollment,
-                raw_score=25,
+                raw_score=Decimal("25.00"),
             )
 
     def test_weighted_result_calculation(self):
-
         ca = Assessment.objects.create(
             school=self.school,
             assessment_plan=self.plan,
             category=self.ca_category,
             name="CA Total",
-            max_score=40,
+            max_score=Decimal("40.00"),
             status=Assessment.Status.CLOSED,
         )
 
@@ -232,7 +230,7 @@ class AssessmentEngineTests(TestCase):
             assessment_plan=self.plan,
             category=self.exam_category,
             name="Final Exam",
-            max_score=100,
+            max_score=Decimal("100.00"),
             status=Assessment.Status.CLOSED,
         )
 
@@ -240,14 +238,14 @@ class AssessmentEngineTests(TestCase):
             school=self.school,
             assessment=ca,
             enrollment=self.enrollment,
-            raw_score=34,
+            raw_score=Decimal("34.00"),
         )
 
         save_student_score(
             school=self.school,
             assessment=exam,
             enrollment=self.enrollment,
-            raw_score=78,
+            raw_score=Decimal("78.00"),
         )
 
         result = calculate_subject_result(

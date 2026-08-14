@@ -20,28 +20,40 @@ from django.urls import (
     path,
 )
 
+from django.views.generic import RedirectView
+
 from apps.core.views import (
     health_check,
+    live_check,
+    readiness_check,
 )
 
 
 urlpatterns = [
+    path(
+        "",
+        RedirectView.as_view(
+            pattern_name="accounts:login",
+            permanent=False,
+        ),
+        name="root",
+    ),
+
     path(
         "admin/",
         admin.site.urls,
     ),
 
     path(
-        "health/",
-        health_check,
-        name="health-check",
+        "health/live/",
+        live_check,
+        name="live-check",
     ),
 
     path(
-        "",
-        include(
-            "apps.accounts.urls"
-        ),
+        "health/ready/",
+        readiness_check,
+        name="readiness-check",
     ),
 
     path(
@@ -49,5 +61,10 @@ urlpatterns = [
         include(
             "apps.portal.urls"
         ),
+    ),
+
+    path(
+        "accounts/",
+        include("apps.accounts.urls", namespace="accounts"),
     ),
 ]

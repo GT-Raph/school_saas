@@ -60,6 +60,21 @@ from apps.subscriptions.services import (
     get_subscription_usage,
 )
 
+from django.core.paginator import Paginator
+
+from django.db.models import (
+    Prefetch,
+    Q,
+)
+
+from apps.academics.models import (
+    AcademicYear,
+    ClassLevel,
+    ClassSection,
+    Enrollment,
+    Enrollment,
+)
+
 
 @tenant_login_required
 @school_permission_required(
@@ -68,13 +83,30 @@ from apps.subscriptions.services import (
 def student_list(
     request,
 ):
-    students = (
-        Student.objects
-        .for_school(
-            request.school
+    school = request.school
+
+    current_enrollments = (
+        Enrollment.objects
+        .for_school(school)
+        .filter(
+            academic_year__is_current=True,
+            status=Enrollment.Status.ACTIVE,
         )
         .select_related(
-            "user"
+            "academic_year",
+            "class_section__level",
+        )
+    )
+
+    students = (
+        Student.objects
+        .for_school(school)
+        .prefetch_related(
+            Prefetch(
+                "enrollments",
+                queryset=current_enrollments,
+                to_attr="current_enrollments",
+            )
         )
         .order_by(
             "last_name",
@@ -82,43 +114,112 @@ def student_list(
         )
     )
 
-    query = (
-        request.GET.get(
-            "q",
-            ""
-        ).strip()
-    )
+    query = request.GET.get(
+        "q",
+        "",
+    ).strip()
+
+    status = request.GET.get(
+        "status",
+        "",
+    ).strip()
+
+    class_section_id = request.GET.get(
+        "class_section",
+        "",
+    ).strip()
 
     if query:
 
-        from django.db.models import Q
-
         students = students.filter(
             Q(
-                admission_number__icontains=(
-                    query
-                )
+                admission_number__icontains=query
             )
             |
             Q(
-                first_name__icontains=(
-                    query
-                )
+                first_name__icontains=query
             )
             |
             Q(
-                last_name__icontains=(
-                    query
-                )
+                middle_name__icontains=query
+            )
+            |
+            Q(
+                last_name__icontains=query
             )
         )
+
+    if status:
+
+        students = students.filter(
+            status=status
+        )
+
+    if class_section_id:
+
+        students = (
+            students.filter(
+                enrollments__academic_year__is_current=True,
+                enrollments__status=(
+                    Enrollment.Status.ACTIVE
+                ),
+                enrollments__class_section_id=(
+                    class_section_id
+                ),
+            )
+            .distinct()
+        )
+
+    paginator = Paginator(
+        students,
+        15,
+    )
+
+    page_obj = paginator.get_page(
+        request.GET.get(
+            "page"
+        )
+    )
+
+    class_sections = (
+        ClassSection.objects
+        .for_school(school)
+        .filter(
+            is_active=True
+        )
+        .select_related(
+            "level"
+        )
+        .order_by(
+            "level__order",
+            "name",
+        )
+    )
 
     return render(
         request,
         "portal/students/list.html",
         {
-            "students": students[:500],
-            "query": query,
+            "page_obj":
+                page_obj,
+
+            "students":
+                page_obj.object_list,
+
+            "query":
+                query,
+
+            "selected_status":
+                status,
+
+            "selected_class_section":
+                class_section_id,
+
+            "status_choices":
+                Student.Status.choices,
+
+            "class_sections":
+                class_sections,
         },
     )
 
