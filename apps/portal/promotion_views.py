@@ -7,6 +7,8 @@ from django.shortcuts import (
     render,
 )
 
+from .pagination import paginate
+
 from apps.accounts.decorators import (
     school_permission_required,
 )
@@ -55,6 +57,13 @@ def promotion_dashboard(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        policies,
+    )
+
+    policies = page_obj.object_list
+
     return render(
         request,
         (
@@ -63,6 +72,8 @@ def promotion_dashboard(
         ),
         {
             "policies": policies,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 
@@ -172,6 +183,13 @@ def promotion_policy_results(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        evaluations,
+    )
+
+    evaluations = page_obj.object_list
+
     return render(
         request,
         (
@@ -181,6 +199,8 @@ def promotion_policy_results(
         {
             "policy": policy,
             "evaluations": evaluations,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 

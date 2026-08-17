@@ -4,6 +4,7 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.db import transaction
+from django.http import request
 from django.shortcuts import (
     get_object_or_404,
     redirect,
@@ -60,7 +61,7 @@ from apps.subscriptions.services import (
     get_subscription_usage,
 )
 
-from django.core.paginator import Paginator
+from .pagination import paginate
 
 from django.db.models import (
     Prefetch,
@@ -170,15 +171,9 @@ def student_list(
             .distinct()
         )
 
-    paginator = Paginator(
+    page_obj, pagination_query = paginate(
+        request,
         students,
-        15,
-    )
-
-    page_obj = paginator.get_page(
-        request.GET.get(
-            "page"
-        )
     )
 
     class_sections = (
@@ -200,8 +195,12 @@ def student_list(
         request,
         "portal/students/list.html",
         {
+            
             "page_obj":
                 page_obj,
+
+            "pagination_query":
+                pagination_query,
 
             "students":
                 page_obj.object_list,
@@ -428,9 +427,7 @@ def student_edit(
 @school_permission_required(
     "guardians.view_guardian"
 )
-def guardian_list(
-    request,
-):
+def guardian_list(request):
     guardians = (
         Guardian.objects
         .for_school(
@@ -442,14 +439,23 @@ def guardian_list(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        guardians,
+    )
+
     return render(
         request,
-        (
-            "portal/guardians/"
-            "list.html"
-        ),
+        "portal/guardians/list.html",
         {
-            "guardians": guardians[:500],
+            "guardians":
+                page_obj.object_list,
+
+            "page_obj":
+                page_obj,
+
+            "pagination_query":
+                pagination_query,
         },
     )
 
@@ -630,18 +636,23 @@ def guardian_link(
 @school_permission_required(
     "staff.view_staff"
 )
-def staff_list(
-    request,
-):
+def staff_list(request):
     staff_members = (
         Staff.objects
         .for_school(
             request.school
         )
-        .order_by(
-            "last_name",
-            "first_name",
+        .select_related(
+            "user"
         )
+        .order_by(
+            "employee_number"
+        )
+    )
+
+    page_obj, pagination_query = paginate(
+        request,
+        staff_members,
     )
 
     return render(
@@ -649,9 +660,16 @@ def staff_list(
         "portal/staff/list.html",
         {
             "staff_members":
-                staff_members[:500],
+                page_obj.object_list,
+
+            "page_obj":
+                page_obj,
+
+            "pagination_query":
+                pagination_query,
         },
     )
+
 
 
 @subscription_write_required
@@ -873,8 +891,18 @@ def student_import_detail(
 
     rows = (
         batch.rows
-        .all()[:500]
+        .all()
+        .order_by(
+            "row_number"
+        )
     )
+
+    page_obj, pagination_query = paginate(
+        request,
+        rows,
+    )
+
+    rows = page_obj.object_list
 
     usage = get_subscription_usage(
         school=request.school
@@ -890,6 +918,8 @@ def student_import_detail(
             "batch": batch,
             "rows": rows,
             "usage": usage,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,  
         },
     )
 

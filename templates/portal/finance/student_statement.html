@@ -93,4 +93,24 @@ Student Financial Statement
 
 </table>
 
+{% include "portal/includes/pagination.html" with page_obj=page_obj pagination_query=pagination_query %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+
+    <script>
+        const table = document.querySelector("table");
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach((row) => {
+            row.addEventListener("click", () => {
+                const reference = row.querySelector("td:nth-child(3)").textContent.trim();
+                if (reference) {
+                    window.location.href = `/portal/finance/transactions/${reference}/`;
+                }
+            });
+        });
+    </script>
+
 {% endblock %}

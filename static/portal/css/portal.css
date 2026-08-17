@@ -1479,6 +1479,72 @@ table tbody tr:hover {
 }
 
 
+.portal-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    margin-top: 20px;
+    padding-top: 18px;
+
+    border-top: 1px solid #ece8f3;
+}
+
+.pagination-summary {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 36px;
+    height: 36px;
+
+    padding: 0 11px;
+
+    border: 1px solid #e5e1ea;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #374151;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.pagination-link:hover {
+    border-color: #7c3aed;
+    color: #7c3aed;
+}
+
+.pagination-link.active {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #ffffff;
+}
+
+@media (max-width: 700px) {
+    .portal-pagination {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+
 /* Forms and messages */
 
 .card {

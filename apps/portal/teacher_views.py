@@ -2,6 +2,9 @@ from django.contrib import messages
 from django.core.exceptions import (
     ValidationError,
 )
+
+from .pagination import paginate
+
 from django.db import transaction
 from django.shortcuts import (
     get_object_or_404,
@@ -83,12 +86,21 @@ def teacher_classes(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        assignments,
+    )
+
+    assignments = page_obj.object_list
+
     return render(
         request,
         "portal/teacher/classes.html",
         {
             "teacher": teacher,
             "assignments": assignments,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 
@@ -113,6 +125,15 @@ def teacher_class_detail(
             offering=offering
         )
     )
+
+    student_count = enrollments.count()
+
+    page_obj, pagination_query = paginate(
+        request,
+        enrollments,
+    )
+
+    enrollments = page_obj.object_list
 
     terms = (
         Term.objects
@@ -159,6 +180,9 @@ def teacher_class_detail(
             "enrollments": enrollments,
             "terms": terms,
             "plans": plans,
+            "student_count": student_count,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 

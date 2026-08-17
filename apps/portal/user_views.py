@@ -6,6 +6,8 @@ from django.shortcuts import (
     render,
 )
 
+from .pagination import paginate
+
 from apps.accounts.decorators import (
     school_permission_required,
 )
@@ -28,9 +30,7 @@ from .user_services import (
 @school_permission_required(
     "schools.manage_school_users"
 )
-def school_user_list(
-    request,
-):
+def school_user_list(request):
     memberships = (
         SchoolMembership.objects
         .filter(
@@ -49,15 +49,23 @@ def school_user_list(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        memberships,
+    )
+
     return render(
         request,
-        (
-            "portal/users/"
-            "list.html"
-        ),
+        "portal/users/list.html",
         {
             "memberships":
-                memberships,
+                page_obj.object_list,
+
+            "page_obj":
+                page_obj,
+
+            "pagination_query":
+                pagination_query,
         },
     )
 

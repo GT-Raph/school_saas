@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+from .pagination import paginate
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -75,14 +75,21 @@ def finance_invoices(request):
             )
         )
 
+    page_obj, pagination_query = paginate(
+        request,
+        invoices,
+    )
+
     rows = []
 
-    for invoice in invoices[:300]:
+    for invoice in page_obj.object_list:
         rows.append(
             {
                 "invoice": invoice,
-                "balance": get_invoice_balance(
-                    invoice
+                "balance": (
+                    get_invoice_balance(
+                        invoice
+                    )
                 ),
             }
         )
@@ -93,6 +100,8 @@ def finance_invoices(request):
         {
             "rows": rows,
             "query": query,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 
@@ -402,9 +411,14 @@ def finance_student_accounts(request):
             )
         )
 
+    page_obj, pagination_query = paginate(
+        request,
+        enrollments,
+    )
+
     rows = []
 
-    for enrollment in enrollments[:300]:
+    for enrollment in page_obj.object_list:
         rows.append(
             {
                 "enrollment": enrollment,
@@ -451,6 +465,13 @@ def finance_student_statement(
         enrollment=enrollment,
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        statement,
+    )
+
+    statement = page_obj.object_list
+
     balance = get_enrollment_balance(
         enrollment
     )
@@ -465,6 +486,8 @@ def finance_student_statement(
             "enrollment": enrollment,
             "statement": statement,
             "balance": balance,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 
@@ -511,6 +534,13 @@ def finance_debtors(request):
         reverse=True,
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        debtors,
+    )
+
+    debtors = page_obj.object_list
+
     return render(
         request,
         "portal/finance/debtors.html",
@@ -519,5 +549,7 @@ def finance_debtors(request):
             "total_outstanding": (
                 total_outstanding
             ),
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )

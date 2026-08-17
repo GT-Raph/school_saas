@@ -1,0 +1,102 @@
+{% if page_obj %}
+
+<div class="pagination-wrapper">
+
+    <div class="pagination-summary">
+
+        {% if page_obj.paginator.count %}
+
+            Showing
+            <strong>
+                {{ page_obj.start_index }}
+            </strong>
+            to
+            <strong>
+                {{ page_obj.end_index }}
+            </strong>
+            of
+            <strong>
+                {{ page_obj.paginator.count }}
+            </strong>
+
+        {% else %}
+
+            0 records
+
+        {% endif %}
+
+    </div>
+
+
+    {% if page_obj.paginator.num_pages > 1 %}
+
+        <div class="pagination-controls">
+
+            {% if page_obj.has_previous %}
+
+                <a
+                    class="pagination-link"
+                    href="?page=1{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                >
+                    First
+                </a>
+
+                <a
+                    class="pagination-link"
+                    href="?page={{ page_obj.previous_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                >
+                    Previous
+                </a>
+
+            {% endif %}
+
+
+            {% for number in page_obj.paginator.page_range %}
+
+                {% if number == page_obj.number %}
+
+                    <span
+                        class="pagination-link pagination-current"
+                    >
+                        {{ number }}
+                    </span>
+
+                {% elif number >= page_obj.number|add:"-2" and number <= page_obj.number|add:"2" %}
+
+                    <a
+                        class="pagination-link"
+                        href="?page={{ number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                    >
+                        {{ number }}
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+
+            {% if page_obj.has_next %}
+
+                <a
+                    class="pagination-link"
+                    href="?page={{ page_obj.next_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                >
+                    Next
+                </a>
+
+                <a
+                    class="pagination-link"
+                    href="?page={{ page_obj.paginator.num_pages }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                >
+                    Last
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endif %}

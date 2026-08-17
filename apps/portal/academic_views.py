@@ -7,6 +7,8 @@ from django.shortcuts import (
     render,
 )
 
+from .pagination import paginate
+
 from apps.accounts.decorators import (
     school_permission_required,
 )
@@ -68,6 +70,13 @@ def academic_results_queue(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        results,
+    )
+
+    results = page_obj.object_list
+
     return render(
         request,
         (
@@ -76,6 +85,8 @@ def academic_results_queue(
         ),
         {
             "results": results,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 
@@ -223,9 +234,14 @@ def academic_term_results(
         )
     )
 
+    page_obj, pagination_query = paginate(
+        request,
+        enrollments,
+    )
+
     rows = []
 
-    for enrollment in enrollments:
+    for enrollment in page_obj.object_list:
 
         term_result = (
             TermResult.objects
@@ -277,6 +293,8 @@ def academic_term_results(
             "term": term,
             "section": section,
             "rows": rows,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
         },
     )
 
