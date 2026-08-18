@@ -17,8 +17,181 @@ from apps.subscriptions.services import (
     assert_can_add_active_students,
 )
 
-from .models import Student
+from .models import (
+    Student,
+    StudentAdmissionSequence,
+)
 
+import re
+
+from django.utils import timezone
+
+from apps.schools.models import School
+
+
+def _derive_admission_prefix(
+    school,
+):
+    words = re.findall(
+        r"[A-Za-z0-9]+",
+        school.name,
+    )
+
+    if len(words) >= 2:
+        prefix = "".join(
+            word[0]
+            for word in words
+        )
+    elif words:
+        prefix = words[0][:3]
+    else:
+        prefix = "STD"
+
+    return prefix.upper()[:10]
+
+
+def _existing_max_sequence(
+    *,
+    school,
+    prefix,
+    year,
+):
+    start = (
+        f"{prefix}-{year}-"
+    )
+
+    admission_numbers = (
+        Student.objects
+        .for_school(school)
+        .filter(
+            admission_number__startswith=start
+        )
+        .values_list(
+            "admission_number",
+            flat=True,
+        )
+    )
+
+    maximum = 0
+
+    for admission_number in (
+        admission_numbers
+    ):
+        suffix = (
+            admission_number[
+                len(start):
+            ]
+        )
+
+        if suffix.isdigit():
+            maximum = max(
+                maximum,
+                int(suffix),
+            )
+
+    return maximum
+
+
+@transaction.atomic
+def generate_admission_number(
+    *,
+    school,
+    admission_date=None,
+    academic_year=None,
+):
+    locked_school = (
+        School.objects
+        .select_for_update()
+        .get(
+            pk=school.pk
+        )
+    )
+
+    prefix = (
+        locked_school
+        .admission_prefix
+        .strip()
+        .upper()
+    )
+
+    if not prefix:
+        prefix = (
+            _derive_admission_prefix(
+                locked_school
+            )
+        )
+
+        locked_school.admission_prefix = (
+            prefix
+        )
+
+        locked_school.save(
+            update_fields=[
+                "admission_prefix",
+                "updated_at",
+            ]
+        )
+
+    if admission_date:
+        year = admission_date.year
+
+    elif academic_year:
+        year = (
+            academic_year
+            .starts_on
+            .year
+        )
+
+    else:
+        year = (
+            timezone.localdate()
+            .year
+        )
+
+    existing_max = (
+        _existing_max_sequence(
+            school=locked_school,
+            prefix=prefix,
+            year=year,
+        )
+    )
+
+    sequence, created = (
+        StudentAdmissionSequence
+        .objects
+        .get_or_create(
+            school=locked_school,
+            year=year,
+            defaults={
+                "last_number":
+                    existing_max,
+            },
+        )
+    )
+
+    if (
+        not created
+        and sequence.last_number
+        < existing_max
+    ):
+        sequence.last_number = (
+            existing_max
+        )
+
+    sequence.last_number += 1
+
+    sequence.save(
+        update_fields=[
+            "last_number",
+            "updated_at",
+        ]
+    )
+
+    return (
+        f"{prefix}-"
+        f"{year}-"
+        f"{sequence.last_number:04d}"
+    )
 
 @transaction.atomic
 def admit_student(
@@ -36,9 +209,19 @@ def admit_student(
         school=school,
 
         admission_number=(
-            data[
-                "admission_number"
-            ]
+            generate_admission_number(
+                school=school,
+                admission_date=(
+                    data.get(
+                        "admission_date"
+                    )
+                ),
+                academic_year=(
+                    data.get(
+                        "academic_year"
+                    )
+                ),
+            )
         ),
 
         first_name=(

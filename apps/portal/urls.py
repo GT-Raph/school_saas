@@ -146,6 +146,12 @@ urlpatterns = [
         name="student-import-confirm",
     ),
 
+    path(
+        "students/import/template/",
+        admin_views.student_import_template,
+        name="student-import-template",
+    ),
+
 
     # Guardians
 

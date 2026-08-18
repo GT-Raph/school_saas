@@ -1,51 +1,24 @@
-from django.contrib.auth import (
-    login, logout, update_session_auth_hash,
-    )
-from django.contrib.auth.views import (
-    LoginView,
-)
-from django.core.exceptions import (
-    PermissionDenied,
-)
-
-from django.contrib.auth.forms import (
-    PasswordChangeForm,
-)
-
-from django.contrib.auth.decorators import (
-    login_required,
-)
-
-from django.contrib import messages
-from django.shortcuts import render
-
-from django.shortcuts import redirect
-
-from apps.schools.models import (
-    SchoolMembership,
-)
-
-from .forms import (
-    SchoolAuthenticationForm,
-)
-
 from django.conf import settings
 
-from django.contrib import (
-    messages,
-)
+from django.contrib import messages
 
 from django.contrib.auth import (
     login,
     logout,
-)
-
-from django.contrib.auth.forms import (
-    AuthenticationForm,
+    update_session_auth_hash,
 )
 
 from django.contrib.auth.decorators import (
     login_required,
+)
+
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+)
+
+from django.contrib.auth.views import (
+    LoginView,
 )
 
 from django.core.exceptions import (
@@ -70,8 +43,14 @@ from django.views.decorators.http import (
     require_POST,
 )
 
+
 from apps.schools.models import (
     SchoolMembership,
+)
+
+
+from .forms import (
+    SchoolAuthenticationForm,
 )
 
 from .handoff import (
@@ -85,9 +64,21 @@ from .platform_urls import (
 )
 
 
+# ============================================================
+# MEMBERSHIP HELPERS
+# ============================================================
+
+
 def get_active_memberships(
     user,
 ):
+    """
+    Return all active school memberships for a user.
+
+    Used by the central login flow to determine which
+    school or schools the authenticated user can access.
+    """
+
     return (
         SchoolMembership.objects
         .filter(
@@ -106,77 +97,110 @@ def get_active_memberships(
     )
 
 
+# ============================================================
+# LOGIN HANDOFF CREATION
+# ============================================================
+
+
 def render_handoff(
     request,
     *,
     membership,
 ):
     """
-    Create a one-use login handoff for the selected school.
+    Create a short-lived, one-use login handoff token.
 
-    After the handoff token has been created, destroy the
-    central authentication session.
+    The user's central-login session is destroyed after
+    the token has been created.
 
-    The destination school will establish its own isolated
-    session when it consumes the handoff token.
+    The destination school host establishes a completely
+    separate authenticated session when the handoff token
+    is consumed.
     """
 
-    school = membership.school
-
-    # ---------------------------------------------------------
-    # Create one-use handoff BEFORE logging out centrally
-    # ---------------------------------------------------------
-
-    token = create_login_handoff(
-        user=request.user,
-        school=school,
+    school = (
+        membership.school
     )
 
-    target_url = school_url(
-        school=school,
-        path="/accounts/handoff/",
+    # --------------------------------------------------------
+    # Create handoff while central session is authenticated.
+    # --------------------------------------------------------
+
+    token = (
+        create_login_handoff(
+            user=request.user,
+            school=school,
+        )
     )
 
-    # ---------------------------------------------------------
-    # IMPORTANT:
-    # Remove central-login session.
+    target_url = (
+        school_url(
+            school=school,
+            path="/accounts/handoff/",
+        )
+    )
+
+    # --------------------------------------------------------
+    # IMPORTANT
     #
-    # Without this, logging out of the school sends the user
-    # back to login.localhost where the old central session
-    # automatically logs them straight back in.
-    # ---------------------------------------------------------
+    # Destroy the central session BEFORE sending the browser
+    # to the tenant.
+    #
+    # Otherwise:
+    #
+    # tenant logout
+    #     -> login.localhost
+    #     -> central session still authenticated
+    #     -> automatic handoff
+    #     -> user appears logged in again
+    # --------------------------------------------------------
 
     logout(
         request
     )
 
-    # ---------------------------------------------------------
-    # The token is sufficient for the destination school to
-    # establish its own authenticated session.
-    # ---------------------------------------------------------
-
     return render(
         request,
         "accounts/login_handoff.html",
         {
-            "school": school,
-            "target_url": target_url,
-            "token": token,
+            "school":
+                school,
+
+            "target_url":
+                target_url,
+
+            "token":
+                token,
         },
     )
+
+
+# ============================================================
+# CENTRAL LOGIN
+# ============================================================
 
 
 def central_login(
     request,
 ):
     """
-    Platform-wide login.
+    Main platform login.
 
-    Users do not need to know their school's URL.
+    Development:
+        login.localhost:8000
+
+    Production:
+        login.<platform-domain>
+
+    Users should not need to know a school's tenant URL
+    before signing in.
     """
 
-    # If somebody visits a school's /accounts/login/,
-    # send them to the central login page.
+    # --------------------------------------------------------
+    # If somebody opens /accounts/login/ on a school host,
+    # send them to central login.
+    # --------------------------------------------------------
+
     if getattr(
         request,
         "school",
@@ -189,22 +213,40 @@ def central_login(
             )
         )
 
-    if request.user.is_authenticated:
+    # --------------------------------------------------------
+    # Already authenticated centrally
+    # --------------------------------------------------------
+
+    if (
+        request.user
+        .is_authenticated
+    ):
 
         return redirect(
             "accounts:post-login"
         )
 
-    if request.method == "POST":
+    # --------------------------------------------------------
+    # Login submission
+    # --------------------------------------------------------
 
-        form = AuthenticationForm(
-            request=request,
-            data=request.POST,
+    if (
+        request.method
+        == "POST"
+    ):
+
+        form = (
+            AuthenticationForm(
+                request=request,
+                data=request.POST,
+            )
         )
 
         if form.is_valid():
 
-            user = form.get_user()
+            user = (
+                form.get_user()
+            )
 
             login(
                 request,
@@ -217,26 +259,44 @@ def central_login(
 
     else:
 
-        form = AuthenticationForm(
-            request=request
+        form = (
+            AuthenticationForm(
+                request=request
+            )
         )
 
     return render(
         request,
-        (
-            "accounts/"
-            "central_login.html"
-        ),
+        "accounts/central_login.html",
         {
-            "form": form,
+            "form":
+                form,
         },
     )
+
+
+# ============================================================
+# CENTRAL POST LOGIN
+# ============================================================
 
 
 @login_required
 def post_login(
     request,
 ):
+    """
+    Determine which school the user should enter.
+
+    0 memberships:
+        show no-school-access page
+
+    1 membership:
+        automatically create handoff
+
+    2+ memberships:
+        let user choose school
+    """
+
     memberships = list(
         get_active_memberships(
             request.user
@@ -247,13 +307,15 @@ def post_login(
 
         return render(
             request,
-            (
-                "accounts/"
-                "no_school_access.html"
-            ),
+            "accounts/no_school_access.html",
         )
 
-    if len(memberships) == 1:
+    if (
+        len(
+            memberships
+        )
+        == 1
+    ):
 
         return render_handoff(
             request,
@@ -267,23 +329,40 @@ def post_login(
     )
 
 
+# ============================================================
+# CHOOSE SCHOOL
+# ============================================================
+
+
 @login_required
 def choose_school(
     request,
 ):
+    """
+    Allow users with multiple memberships to select the
+    school they want to enter.
+    """
+
     memberships = (
         get_active_memberships(
             request.user
         )
     )
 
-    if request.method == "POST":
+    if (
+        request.method
+        == "POST"
+    ):
 
-        membership = get_object_or_404(
-            memberships,
-            id=request.POST.get(
-                "membership_id"
-            ),
+        membership = (
+            get_object_or_404(
+                memberships,
+                id=(
+                    request.POST.get(
+                        "membership_id"
+                    )
+                ),
+            )
         )
 
         return render_handoff(
@@ -293,15 +372,17 @@ def choose_school(
 
     return render(
         request,
-        (
-            "accounts/"
-            "choose_school.html"
-        ),
+        "accounts/choose_school.html",
         {
             "memberships":
                 memberships,
         },
     )
+
+
+# ============================================================
+# TENANT HANDOFF
+# ============================================================
 
 
 @csrf_exempt
@@ -310,13 +391,12 @@ def tenant_handoff(
     request,
 ):
     """
-    Consume a short-lived handoff credential and
-    establish a session on the destination school host.
+    Consume a one-use handoff credential on the destination
+    tenant host and establish the tenant's Django session.
 
-    This endpoint is intentionally CSRF-exempt because
-    authentication depends on a cryptographically random,
-    one-use, short-lived credential rather than an
-    existing browser session.
+    CSRF exemption is intentional here because authentication
+    is based on the short-lived cryptographically random
+    handoff credential itself.
     """
 
     school = getattr(
@@ -328,34 +408,78 @@ def tenant_handoff(
     if not school:
 
         return HttpResponseBadRequest(
-            "School could not be identified."
+            (
+                "School could not "
+                "be identified."
+            )
+        )
+
+    token = (
+        request.POST.get(
+            "token",
+            ""
+        )
+    )
+
+    if not token:
+
+        return render(
+            request,
+            "accounts/handoff_error.html",
+            {
+                "error":
+                    (
+                        "Login token was "
+                        "not provided."
+                    ),
+
+                "central_login_url":
+                    platform_url(
+                        "/accounts/login/"
+                    ),
+            },
+            status=400,
         )
 
     try:
 
-        user = consume_login_handoff(
-            token=request.POST.get(
-                "token",
-                "",
-            ),
-
-            school=school,
+        user = (
+            consume_login_handoff(
+                token=token,
+                school=school,
+            )
         )
 
     except ValidationError as exc:
 
+        error_message = (
+            exc.messages[0]
+            if exc.messages
+            else (
+                "The login request "
+                "could not be completed."
+            )
+        )
+
         return render(
             request,
-            (
-                "accounts/"
-                "handoff_error.html"
-            ),
+            "accounts/handoff_error.html",
             {
-                "errors":
-                    exc.messages,
+                "error":
+                    error_message,
+
+                "central_login_url":
+                    platform_url(
+                        "/accounts/login/"
+                    ),
             },
             status=400,
         )
+
+    # --------------------------------------------------------
+    # Explicit backend is necessary because this user was not
+    # authenticated through authenticate() on this host.
+    # --------------------------------------------------------
 
     backend = (
         settings
@@ -368,13 +492,18 @@ def tenant_handoff(
         backend=backend,
     )
 
-    if user.must_change_password:
+    # --------------------------------------------------------
+    # Temporary-password workflow
+    # --------------------------------------------------------
+
+    if getattr(
+        user,
+        "must_change_password",
+        False,
+    ):
 
         return redirect(
-            (
-                "accounts:"
-                "force-password-change"
-            )
+            "accounts:force-password-change"
         )
 
     return redirect(
@@ -382,12 +511,21 @@ def tenant_handoff(
     )
 
 
+# ============================================================
+# SCHOOL LOGOUT
+# ============================================================
+
+
 def school_logout(
     request,
 ):
     """
-    End the current host's authenticated session and
-    return the user to the central login page.
+    Destroy the tenant-host session and return the user to
+    the CENTRAL login host.
+
+    Do not redirect using "accounts:login" here because that
+    creates a relative /accounts/login/ URL on the current
+    tenant hostname.
     """
 
     logout(
@@ -401,7 +539,21 @@ def school_logout(
     )
 
 
-class SchoolLoginView(LoginView):
+# ============================================================
+# LEGACY SCHOOL LOGIN VIEW
+# ============================================================
+
+
+class SchoolLoginView(
+    LoginView
+):
+    """
+    Legacy school-host login view.
+
+    The standard architecture now uses central_login() and
+    login handoff. This class is retained only in case an
+    existing URL or test still imports it.
+    """
 
     template_name = (
         "accounts/login.html"
@@ -419,7 +571,9 @@ class SchoolLoginView(LoginView):
         self,
         form,
     ):
-        user = form.get_user()
+        user = (
+            form.get_user()
+        )
 
         school = getattr(
             self.request,
@@ -437,13 +591,23 @@ class SchoolLoginView(LoginView):
                 ),
             )
 
-            return self.form_invalid(
-                form
+            return (
+                self.form_invalid(
+                    form
+                )
             )
+
+        is_platform_admin = (
+            getattr(
+                user,
+                "is_platform_admin",
+                False,
+            )
+        )
 
         if (
             not user.is_superuser
-            and not user.is_platform_admin
+            and not is_platform_admin
         ):
 
             membership_exists = (
@@ -467,8 +631,10 @@ class SchoolLoginView(LoginView):
                     ),
                 )
 
-                return self.form_invalid(
-                    form
+                return (
+                    self.form_invalid(
+                        form
+                    )
                 )
 
         return super().form_valid(
@@ -481,46 +647,58 @@ class SchoolLoginView(LoginView):
         return "/portal/"
 
 
-def school_logout(
-    request,
-):
-    """
-    End the current host's authenticated session and
-    return the user to the central login page.
-    """
+# ============================================================
+# FORCED PASSWORD CHANGE
+# ============================================================
 
-    logout(
-        request
-    )
-
-    return redirect(
-        "accounts:login"
-    )
 
 @login_required
 def force_password_change(
     request,
 ):
-    if request.method == "POST":
+    """
+    Require users with temporary passwords to choose a new
+    password before continuing into the portal.
+    """
 
-        form = PasswordChangeForm(
-            user=request.user,
-            data=request.POST,
+    if (
+        request.method
+        == "POST"
+    ):
+
+        form = (
+            PasswordChangeForm(
+                user=request.user,
+                data=request.POST,
+            )
         )
 
         if form.is_valid():
 
-            user = form.save()
-
-            user.must_change_password = False
-
-            user.save(
-                update_fields=[
-                    "must_change_password",
-                    "updated_at",
-                ]
+            user = (
+                form.save()
             )
 
+            if hasattr(
+                user,
+                "must_change_password",
+            ):
+
+                user.must_change_password = (
+                    False
+                )
+
+                user.save(
+                    update_fields=[
+                        (
+                            "must_change_password"
+                        ),
+                        "updated_at",
+                    ]
+                )
+
+            # Keep the current session valid after password
+            # change.
             update_session_auth_hash(
                 request,
                 user,
@@ -529,10 +707,14 @@ def force_password_change(
             messages.success(
                 request,
                 (
-                    "Your password was changed "
-                    "successfully."
+                    "Your password was "
+                    "changed successfully."
                 ),
             )
+
+            # -----------------------------------------------
+            # Password changed while on tenant host.
+            # -----------------------------------------------
 
             if getattr(
                 request,
@@ -544,6 +726,9 @@ def force_password_change(
                     "portal:home"
                 )
 
+            # -----------------------------------------------
+            # Password changed on central host.
+            # -----------------------------------------------
 
             return redirect(
                 "accounts:post-login"
@@ -551,14 +736,20 @@ def force_password_change(
 
     else:
 
-        form = PasswordChangeForm(
-            user=request.user
+        form = (
+            PasswordChangeForm(
+                user=request.user
+            )
         )
 
     return render(
         request,
-        "accounts/force_password_change.html",
+        (
+            "accounts/"
+            "force_password_change.html"
+        ),
         {
-            "form": form,
+            "form":
+                form,
         },
     )

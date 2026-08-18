@@ -151,7 +151,39 @@ class Student(SchoolOwnedModel):
             f"{self.full_name} "
             f"({self.admission_number})"
         )
-    
+
+class StudentAdmissionSequence(
+    SchoolOwnedModel
+):
+    year = models.PositiveIntegerField()
+
+    last_number = (
+        models.PositiveIntegerField(
+            default=0
+        )
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "school",
+                    "year",
+                ],
+                name=(
+                    "unique_student_admission_"
+                    "sequence_per_school_year"
+                ),
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.school} "
+            f"{self.year}: "
+            f"{self.last_number}"
+        )
+
 class StudentImportBatch(SchoolOwnedModel):
 
     class Status(models.TextChoices):

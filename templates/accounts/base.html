@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Login Request Error
+    </title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #f7f5fa;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            color: #111827;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+
+            margin: 24px;
+            padding: 36px;
+
+            background: #ffffff;
+
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+
+            box-shadow:
+                0 10px 30px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.06
+                );
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 16px;
+
+            font-size: 24px;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #6b7280;
+        }
+
+        .button {
+            display: inline-block;
+
+            margin-top: 14px;
+            padding: 12px 18px;
+
+            background: #111827;
+            color: #ffffff;
+
+            border-radius: 8px;
+
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <h1>
+            Login Request Error
+        </h1>
+
+        <p>
+            {{ error }}
+        </p>
+
+        <p>
+            This login request may have expired,
+            already been used, or belong to another school.
+        </p>
+
+        <a
+            href="{{ central_login_url }}"
+            class="button"
+        >
+            Return to Login
+        </a>
+
+    </div>
+
+</body>
+</html>

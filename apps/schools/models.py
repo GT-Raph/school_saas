@@ -21,6 +21,15 @@ class School(TimeStampedModel):
         unique=True,
     )
 
+    admission_prefix = models.CharField(
+        max_length=10,
+        blank=True,
+        help_text=(
+            "Prefix used for automatically generated "
+            "student admission numbers."
+        ),
+    )
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

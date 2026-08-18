@@ -509,7 +509,11 @@ Student Import Review
                         </td>
 
                         <td data-label="Admission No.">
-                            {{ row.normalized_data.admission_number }}
+                            {% if row.imported_student %}
+                                {{ row.imported_student.admission_number }}
+                            {% else %}
+                                Automatic
+                            {% endif %}
                         </td>
 
                         <td data-label="Student">

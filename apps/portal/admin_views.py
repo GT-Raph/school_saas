@@ -11,6 +11,12 @@ from django.shortcuts import (
     render,
 )
 
+from django.http import HttpResponse
+
+from apps.students.import_template import (
+    build_student_import_template,
+)
+
 from apps.accounts.decorators import (
     school_permission_required,
     tenant_login_required,
@@ -75,6 +81,41 @@ from apps.academics.models import (
     Enrollment,
     Enrollment,
 )
+
+
+@tenant_login_required
+@school_permission_required(
+    "students.add_student"
+)
+def student_import_template(
+    request,
+):
+    content = (
+        build_student_import_template(
+            school=request.school
+        )
+    )
+
+    response = HttpResponse(
+        content,
+        content_type=(
+            "application/vnd.openxmlformats-"
+            "officedocument.spreadsheetml.sheet"
+        ),
+    )
+
+    filename = (
+        f"{request.school.slug}-"
+        "student-import-template.xlsx"
+    )
+
+    response[
+        "Content-Disposition"
+    ] = (
+        f'attachment; filename="{filename}"'
+    )
+
+    return response
 
 
 @tenant_login_required
@@ -856,7 +897,7 @@ def student_import_upload(
 
     return render(
         request,
-        "portal/form.html",
+        "portal/students/import_upload.html",
         {
             "title":
                 "Bulk Import Students",

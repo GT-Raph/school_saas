@@ -15,6 +15,7 @@ class SchoolProfileForm(
 
         fields = [
             "name",
+            "admission_prefix",
             "timezone",
             "currency",
             "default_language",

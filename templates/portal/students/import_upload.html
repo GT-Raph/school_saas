@@ -1,0 +1,141 @@
+{% extends "portal/base.html" %}
+
+{% block title %}
+Bulk Import Students
+{% endblock %}
+
+{% block heading %}
+Bulk Import Students
+{% endblock %}
+
+{% block content %}
+
+<div
+    style="
+        max-width: 850px;
+    "
+>
+
+    <div
+        class="card"
+        style="
+            margin-bottom: 20px;
+        "
+    >
+
+        <h2>
+            Download Excel Template
+        </h2>
+
+        <p
+            style="
+                color: #6b7280;
+                line-height: 1.6;
+            "
+        >
+            Download the school template,
+            enter the student information,
+            save the file and upload it below.
+            Admission numbers are generated
+            automatically when the import is confirmed.
+        </p>
+
+        <a
+            class="button button-secondary"
+            href="{% url 'portal:student-import-template' %}"
+        >
+            Download Excel Template
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>
+            Upload Completed Template
+        </h2>
+
+        {% if form.non_field_errors %}
+
+            <div
+                style="
+                    padding: 12px;
+                    background: #fee2e2;
+                    margin-bottom: 20px;
+                "
+            >
+                {{ form.non_field_errors }}
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+            {% for field in form %}
+
+                <div
+                    style="
+                        margin-bottom: 18px;
+                    "
+                >
+
+                    <label
+                        style="
+                            display: block;
+                            font-weight: 600;
+                            margin-bottom: 6px;
+                        "
+                    >
+                        {{ field.label }}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <div
+                            style="
+                                margin-top: 6px;
+                                color: #6b7280;
+                                font-size: 13px;
+                            "
+                        >
+                            {{ field.help_text }}
+                        </div>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <div
+                            style="
+                                margin-top: 6px;
+                                color: #b91c1c;
+                            "
+                        >
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+            <button
+                type="submit"
+                class="button"
+            >
+                Upload and Validate
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
